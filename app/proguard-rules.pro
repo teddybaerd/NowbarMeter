@@ -22,9 +22,11 @@
     java.lang.Object readResolve();
 }
 
-# Retain generic type signatures (optional, but often helpful for libraries relying on generics)
--keepattributes Signature
+# Keep Samsung Notification semFlags field for reflection
+-keepclassmembers class android.app.Notification {
+    public int semFlags;
+}
 
-# Third-party library specific rules (if any needed that aren't in their own consumer-rules.pro)
+# Third-party library specific rules
 -dontwarn androidx.window.extensions.**
 -dontwarn androidx.window.sidecar.**

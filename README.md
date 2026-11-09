@@ -10,7 +10,7 @@
 
 <p align="center">
     <a href="LICENSE"><img src="https://img.shields.io/github/license/realMoai/NowbarMeter" alt="License"></a>
-    <img src="https://img.shields.io/badge/Version-1.2-green" alt="Version 1.2">
+    <img src="https://img.shields.io/badge/Version-1.3-green" alt="Version 1.3">
     <img src="https://img.shields.io/badge/Forked_From-Pixel_Meter-blue" alt="Forked from Pixel Meter">
     <img src="https://img.shields.io/github/downloads/realMoai/NowbarMeter/total" alt="Downloads">
     <a href="https://buymeacoffee.com/nowbarmeter"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee"></a>
@@ -18,11 +18,11 @@
 
 ## About
 
-NowbarMeter is a specialized fork of [Pixel Meter](https://github.com/Mystery00/PixelMeter), rebuilt specifically for Samsung Galaxy devices.
+NowbarMeter is a specialized fork of [Pixel Meter](https://github.com/Pixel-Tailor-CN/PixelMeter), rebuilt specifically for Samsung Galaxy devices.
 
-Samsung severely restricted the **Now Bar** (Live Updates / Status Bar Chip) feature in modern One UI builds, locking it behind a hardcoded system whitelist of proprietary and partner apps. **NowbarMeter bypasses this restriction.** By injecting the `com.samsung.android.support.ongoing_activity` metadata flag and strategically spoofing a whitelisted package name (e.g., `com.nhn.android.nmap`), this app forces a native, real-time network speed monitor directly into the One UI Now Bar pill.
+Samsung severely restricted the **Now Bar** (Live Updates / Status Bar Chip) feature in modern One UI builds, locking it behind a hardcoded system whitelist of proprietary and partner apps. **NowbarMeter bypasses this restriction.** By injecting the `com.samsung.android.support.ongoing_activity` metadata flag and strategically spoofing a whitelisted package name (`com.kakao.taxi`), this app forces a native, real-time network speed monitor directly into the One UI Now Bar pill.
 
-It retains all the god-tier features of the original app, including intelligent VPN traffic filtering, so your displayed speed is exactly what your physical interface is actually pulling.
+It retains all the features of the original app, including intelligent VPN traffic filtering, so your displayed speed is exactly what your physical interface is actually pulling.
 
 ## Screenshots
 
@@ -46,19 +46,25 @@ Since this app modifies system-level UI elements, it is not available on the Goo
 
 ## Features
 
-- **Samsung Now Bar Native Integration**: Hijacks the One UI status bar chip to display real-time upload and download speeds perfectly native to the system UI.
-- **One UI 7 Payload Injection**: Bypasses Android 15's hardcoded signature verification by directly injecting proprietary Samsung metadata and `semFlags` into the notification builder.
+- **Samsung Now Bar Native Integration**: Hijacks the One UI status bar chip to display real-time speeds (Total, Download Only, Upload Only, or Dual `▼ Down ▲ Up`) directly in the status bar pill, plus customizable expanded Now Bar card content.
+- **One UI 7+ Payload Injection**: Bypasses Android 15/16 hardcoded signature verification by injecting proprietary Samsung metadata and `semFlags` into the notification builder.
 - **Lockscreen Override**: Uses system broadcast receivers to force the Live Update chip to render on your secure lockscreen, even if you have it hidden in the regular status bar.
-- **Built-In OTA Updater**: Native, zero-dependency integration with the GitHub API that checks for new releases on launch.
-- **Whitelist Bypass**: Uses package spoofing (`com.kakao.taxi`) to bypass Samsung's legacy One UI 7+ walled-garden restrictions.
-- **Compact Speed Text**: Dynamically drops decimals on higher speeds (>= 10) so the text never cuts off or overflows the status bar icon boundaries.
-- **Precise Traffic Stats**: Uses `ConnectivityManager` and `TrafficStats` to filter out `tun0` and virtual VPN interfaces to prevent double-counting data.
+- **Custom Fonts & Presets**: Choose from compact built-in presets (*Sans-Serif Condensed*, *Monospace Tabular*, *Serif*) or import any custom `.ttf`/`.otf` font file for the status bar icon, floating overlay, and dashboard.
+- **Flexible Units & Clean Formatting**:
+  - Toggle between **Bytes (`B/s`, `KB/s`, `MB/s`, `GB/s`)** and **Bits (`b/s`, `kb/s`, `Mb/s`, `Gb/s`)**.
+  - **Hide KB/s Decimals** option (`8 KB/s` vs `8.2 MB/s`) for instant readability at a glance.
+  - **Minimum Display Unit** floor to suppress tiny background traffic fluctuations in Auto mode.
+  - **Compact Speed Text**: Dynamically drops decimals on higher speeds (`>= 10`) so text never overflows.
+- **Advanced Floating Window (Overlay)**: Supports horizontal or vertical stacked layout, precise X/Y coordinates, drawing over the status bar, transparent background, and smart auto-hide in **Landscape**, **Immersive/Fullscreen mode**, or during **Low Traffic**.
+- **Built-In OTA Updater**: Checks GitHub Releases on launch with release notes preview and direct APK download.
+- **Ultra-Lightweight APK (~1.7 MB)**: R8-minified and resource-shrunk release build (down from 62.8 MB).
+- **Precise Traffic Stats**: Uses `ConnectivityManager` and `TrafficStats` with monotonic clock sampling to filter out `tun0` and virtual VPN interfaces without reconnect speed spikes.
 
 ## Requirements
 
 - **Device**: Samsung Galaxy devices running One UI 7.0 or higher.
 - **Android Version**: Android 12 (API Level 31) or higher.
-- **Permissions**: Notification (Crucial for the foreground service to push to the Now Bar) and Battery Optimization bypass.
+- **Permissions**: Notification (for the Now Bar / status bar monitor) or Display over other apps (for the Floating Window), plus Battery Optimization bypass.
 
 ## Architecture
 
@@ -76,7 +82,7 @@ If you find this app useful and want to help support the reverse-engineering and
 
 ## Credits
 
-Massive shoutout to [Mystery00](https://github.com/Mystery00) for building the original, open-source [Pixel Meter](https://github.com/Mystery00/PixelMeter). This fork simply adapts their brilliant networking logic to break through Samsung's UI restrictions.
+Massive shoutout to [Mystery00](https://github.com/Pixel-Tailor-CN/PixelMeter) for building the original, open-source [Pixel Meter](https://github.com/Pixel-Tailor-CN/PixelMeter). This fork adapts their networking logic and feature set to break through Samsung's UI restrictions.
 
 ## License
 

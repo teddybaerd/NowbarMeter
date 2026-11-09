@@ -3,16 +3,20 @@ package com.kakao.taxi.ui.settings
 import android.Manifest
 import android.app.Application
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.kakao.taxi.data.repository.NetworkRepository
+import com.kakao.taxi.ui.theme.CustomFontManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import com.kakao.taxi.data.repository.NetworkRepository
 import android.os.PowerManager as AndroidPowerManager
 
 class SettingsViewModel(
@@ -30,16 +34,28 @@ class SettingsViewModel(
 
     // Overlay Settings
     val isOverlayEnabled = repository.isOverlayEnabled
+    val isOverlayLocked = repository.isOverlayLocked
+    val isOverlayShowOnStatusBar = repository.isOverlayShowOnStatusBar
+    val isOverlayPortraitOnly = repository.isOverlayPortraitOnly
+    val isOverlayHideInImmersiveMode = repository.isOverlayHideInImmersiveMode
+    val overlayAutoHideThreshold = repository.overlayAutoHideThreshold
+    val isOverlayHideBackground = repository.isOverlayHideBackground
+    val overlayX = repository.overlayX
+    val overlayY = repository.overlayY
     val overlayBgColor = repository.overlayBgColor
     val overlayTextColor = repository.overlayTextColor
     val overlayCornerRadius = repository.overlayCornerRadius
+    val overlayPadding = repository.overlayPadding
     val overlayTextSize = repository.overlayTextSize
     val overlayTextUp = repository.overlayTextUp
     val overlayTextDown = repository.overlayTextDown
     val overlayOrderUpFirst = repository.overlayOrderUpFirst
-    val isOverlayLocked = repository.isOverlayLocked
+    val overlayDirection = repository.overlayDirection
+    val overlayDisplayMode = repository.overlayDisplayMode
+    val overlayAlignment = repository.overlayAlignment
+    val overlayMeterSpacing = repository.overlayMeterSpacing
 
-    // Notification Settings
+    // Notification & Now Bar Settings
     val isNotificationEnabled = repository.isNotificationEnabled
     val isLiveUpdateEnabled = repository.isLiveUpdateEnabled
     val isShowOnLockscreenEnabled = repository.isShowOnLockscreenEnabled
@@ -47,6 +63,9 @@ class SettingsViewModel(
     val notificationTextDown = repository.notificationTextDown
     val notificationOrderUpFirst = repository.notificationOrderUpFirst
     val notificationDisplayMode = repository.notificationDisplayMode
+    val notificationIconMode = repository.notificationIconMode
+    val nowbarShowArrows = repository.nowbarShowArrows
+    val nowbarExpandedMode = repository.nowbarExpandedMode
     val notificationTextSize = repository.notificationTextSize
     val notificationUnitSize = repository.notificationUnitSize
     val notificationThreshold = repository.notificationThreshold
@@ -60,10 +79,18 @@ class SettingsViewModel(
     // General Settings
     val samplingInterval = repository.samplingInterval
     val speedUnit = repository.speedUnit
+    val speedRateUnit = repository.speedRateUnit
+    val minSpeedUnit = repository.minSpeedUnit
+    val isHideKiloDecimalsEnabled = repository.isHideKiloDecimalsEnabled
     val isHideFromRecents = repository.isHideFromRecents
     val isOverlayUseDefaultColors = repository.isOverlayUseDefaultColors
     val isAutoStartServiceEnabled = repository.isAutoStartServiceEnabled
     val isOledThemeEnabled = repository.isOledThemeEnabled
+    val appThemeMode = repository.appThemeMode
+    val appThemeColor = repository.appThemeColor
+    val fontPreset = repository.fontPreset
+    val customFontPath = repository.customFontPath
+    val customFontName = repository.customFontName
 
     init {
         refreshOverlaySettings()
@@ -100,16 +127,28 @@ class SettingsViewModel(
 
     fun setOverlayEnabled(enabled: Boolean) = repository.setOverlayEnabled(enabled)
     fun setOverlayLocked(locked: Boolean) = repository.setOverlayLocked(locked)
+    fun setOverlayShowOnStatusBar(enabled: Boolean) = repository.setOverlayShowOnStatusBar(enabled)
+    fun setOverlayPortraitOnly(enabled: Boolean) = repository.setOverlayPortraitOnly(enabled)
+    fun setOverlayHideInImmersiveMode(enabled: Boolean) = repository.setOverlayHideInImmersiveMode(enabled)
+    fun setOverlayAutoHideThreshold(threshold: Long) = repository.setOverlayAutoHideThreshold(threshold)
+    fun setOverlayHideBackground(hide: Boolean) = repository.setOverlayHideBackground(hide)
+    fun setOverlayX(x: Int) = repository.setOverlayX(x)
+    fun setOverlayY(y: Int) = repository.setOverlayY(y)
 
     fun setSamplingInterval(interval: Long) = repository.setSamplingInterval(interval)
     fun setHideFromRecents(hide: Boolean) = repository.setHideFromRecents(hide)
     fun setOverlayBgColor(color: Int) = repository.setOverlayBgColor(color)
     fun setOverlayTextColor(color: Int) = repository.setOverlayTextColor(color)
     fun setOverlayCornerRadius(radius: Int) = repository.setOverlayCornerRadius(radius)
+    fun setOverlayPadding(padding: Int) = repository.setOverlayPadding(padding)
     fun setOverlayTextSize(size: Float) = repository.setOverlayTextSize(size)
     fun setOverlayTextUp(text: String) = repository.setOverlayTextUp(text)
     fun setOverlayTextDown(text: String) = repository.setOverlayTextDown(text)
     fun setOverlayOrderUpFirst(upFirst: Boolean) = repository.setOverlayOrderUpFirst(upFirst)
+    fun setOverlayDirection(direction: Int) = repository.setOverlayDirection(direction)
+    fun setOverlayDisplayMode(mode: Int) = repository.setOverlayDisplayMode(mode)
+    fun setOverlayAlignment(alignment: Int) = repository.setOverlayAlignment(alignment)
+    fun setOverlayMeterSpacing(spacing: Int) = repository.setOverlayMeterSpacing(spacing)
 
     fun setNotificationEnabled(enabled: Boolean) = repository.setNotificationEnabled(enabled)
     fun setLiveUpdateEnabled(enabled: Boolean) = repository.setLiveUpdateEnabled(enabled)
@@ -120,6 +159,9 @@ class SettingsViewModel(
         repository.setNotificationOrderUpFirst(upFirst)
 
     fun setNotificationDisplayMode(mode: Int) = repository.setNotificationDisplayMode(mode)
+    fun setNotificationIconMode(mode: Int) = repository.setNotificationIconMode(mode)
+    fun setNowbarShowArrows(show: Boolean) = repository.setNowbarShowArrows(show)
+    fun setNowbarExpandedMode(mode: Int) = repository.setNowbarExpandedMode(mode)
     fun setNotificationTextSize(size: Float) = repository.setNotificationTextSize(size)
     fun setNotificationUnitSize(size: Float) = repository.setNotificationUnitSize(size)
     fun setOverlayUseDefaultColors(useDefault: Boolean) =
@@ -128,17 +170,35 @@ class SettingsViewModel(
     fun setNotificationLowTrafficMode(mode: Int) = repository.setNotificationLowTrafficMode(mode)
     fun setNotificationUseCustomColor(useCustom: Boolean) =
         repository.setNotificationUseCustomColor(useCustom)
-
     fun setNotificationColor(color: Int) = repository.setNotificationColor(color)
 
     fun setAutoStartServiceEnabled(enabled: Boolean) =
         repository.setAutoStartServiceEnabled(enabled)
 
     fun setSpeedUnit(unit: String) = repository.setSpeedUnit(unit)
+    fun setSpeedRateUnit(rateUnit: Int) = repository.setSpeedRateUnit(rateUnit)
+    fun setMinSpeedUnit(unit: Int) = repository.setMinSpeedUnit(unit)
+    fun setHideKiloDecimalsEnabled(enabled: Boolean) = repository.setHideKiloDecimalsEnabled(enabled)
 
     fun setOledThemeEnabled(enabled: Boolean) = repository.setOledThemeEnabled(enabled)
+    fun setAppThemeMode(mode: Int) = repository.setAppThemeMode(mode)
+    fun setAppThemeColor(color: Int) = repository.setAppThemeColor(color)
+
+    fun setFontPreset(preset: Int) = repository.setFontPreset(preset)
+
+    fun importCustomFont(uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = CustomFontManager.importCustomFont(application, uri)
+            if (result != null) {
+                withContext(Dispatchers.Main) {
+                    repository.setCustomFont(result.first, result.second)
+                }
+            }
+        }
+    }
 
     fun setCompactSpeedTextEnabled(enabled: Boolean) = repository.setCompactSpeedTextEnabled(enabled)
     fun setBlankNotificationEnabled(enabled: Boolean) = repository.setBlankNotificationEnabled(enabled)
-    fun setNotificationTransparentIconEnabled(enabled: Boolean) = repository.setNotificationTransparentIconEnabled(enabled)
+    fun setNotificationTransparentIconEnabled(enabled: Boolean) =
+        repository.setNotificationTransparentIconEnabled(enabled)
 }

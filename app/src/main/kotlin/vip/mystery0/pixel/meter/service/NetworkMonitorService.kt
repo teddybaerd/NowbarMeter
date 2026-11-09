@@ -12,6 +12,9 @@ import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
+import com.kakao.taxi.data.repository.NetworkRepository
+import com.kakao.taxi.data.source.NetSpeedData
+import com.kakao.taxi.ui.overlay.OverlayWindow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -19,9 +22,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
-import com.kakao.taxi.data.repository.NetworkRepository
-import com.kakao.taxi.data.source.NetSpeedData
-import com.kakao.taxi.ui.overlay.OverlayWindow
 
 class NetworkMonitorService : Service() {
     companion object {
@@ -48,7 +48,7 @@ class NetworkMonitorService : Service() {
     override fun onCreate() {
         super.onCreate()
         NotificationHelper.createNotificationChannel(this)
-        
+
         val screenStateFilter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
@@ -72,25 +72,37 @@ class NetworkMonitorService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        notificationHelper.resetRenderCache()
+        val isLocked = keyguardManager.isKeyguardLocked
+        val forceLiveUpdate = repository.isShowOnLockscreenEnabled.value && isLocked
+
         val initialNotif = notificationHelper.buildNotification(
-            speed = NetSpeedData(0, 0),
-            isLiveUpdate = false,
-            isNotificationEnabled = true,
-            textUp = "▲ ",
-            textDown = "▼ ",
-            upFirst = true,
-            displayMode = 0,
-            textSize = 0.65f,
-            unitSize = 0.35f,
-            threshold = 0L,
-            lowTrafficMode = 1,
-            useCustomColor = false,
-            color = 0,
-            speedUnit = "0",
-            compactMode = false,
-            isBlank = false,
+            speed = repository.netSpeed.value,
+            isLiveUpdate = repository.isLiveUpdateEnabled.value,
+            isNotificationEnabled = repository.isNotificationEnabled.value,
+            textUp = repository.notificationTextUp.value,
+            textDown = repository.notificationTextDown.value,
+            upFirst = repository.notificationOrderUpFirst.value,
+            displayMode = repository.notificationDisplayMode.value,
+            iconMode = repository.notificationIconMode.value,
+            nowbarShowArrows = repository.nowbarShowArrows.value,
+            nowbarExpandedMode = repository.nowbarExpandedMode.value,
+            textSize = repository.notificationTextSize.value,
+            unitSize = repository.notificationUnitSize.value,
+            threshold = repository.notificationThreshold.value,
+            lowTrafficMode = repository.notificationLowTrafficMode.value,
+            useCustomColor = repository.notificationUseCustomColor.value,
+            color = repository.notificationColor.value,
+            speedUnit = repository.speedUnit.value,
+            minSpeedUnit = repository.minSpeedUnit.value,
+            rateUnit = repository.speedRateUnit.value,
+            compactMode = repository.isCompactSpeedTextEnabled.value,
+            hideKiloDecimals = repository.isHideKiloDecimalsEnabled.value,
+            isBlank = repository.isBlankNotificationEnabled.value,
             isTransparentIcon = repository.isNotificationTransparentIconEnabled.value,
-            forceLiveUpdateOnLockscreen = false
+            forceLiveUpdateOnLockscreen = forceLiveUpdate,
+            fontPreset = repository.fontPreset.value,
+            customFontPath = repository.customFontPath.value
         )
 
         try {
@@ -119,19 +131,16 @@ class NetworkMonitorService : Service() {
 
     private fun startMonitoring() {
         serviceJob?.cancel()
-
-        // Start Repository Monitoring
         repository.startMonitoring()
 
         serviceJob = scope.launch {
-            repository.netSpeed.collect { speed ->
+            repository.speedSamples.collect { speed ->
                 updateNotification(speed)
             }
         }
     }
 
     private suspend fun updateNotification(speed: NetSpeedData) {
-        // Overlay logic
         withContext(Dispatchers.Main) {
             try {
                 if (repository.isOverlayEnabled.value) {
@@ -139,10 +148,7 @@ class NetworkMonitorService : Service() {
                         overlayWindow.show()
                         overlayWindow.update(speed)
                     } else {
-                        Log.w(
-                            TAG,
-                            "overlay enabled but permission not granted, hiding overlay."
-                        )
+                        Log.w(TAG, "overlay enabled but permission not granted, hiding overlay.")
                         overlayWindow.hide()
                     }
                 } else {
@@ -153,42 +159,47 @@ class NetworkMonitorService : Service() {
             }
         }
 
-        // Notification logic
         val notification = withContext(Dispatchers.Default) {
-            val isLiveUpdate = repository.isLiveUpdateEnabled.value
-            val isNotificationEnabled = repository.isNotificationEnabled.value
-            val isShowOnLockscreenEnabled = repository.isShowOnLockscreenEnabled.value
-            val textUp = repository.notificationTextUp.value
-            val textDown = repository.notificationTextDown.value
-            val upFirst = repository.notificationOrderUpFirst.value
-            val displayMode = repository.notificationDisplayMode.value
-            val textSize = repository.notificationTextSize.value
-            val unitSize = repository.notificationUnitSize.value
-            val threshold = repository.notificationThreshold.value
-            val lowTrafficMode = repository.notificationLowTrafficMode.value
-            val useCustomColor = repository.notificationUseCustomColor.value
-            val color = repository.notificationColor.value
-            val speedUnit = repository.speedUnit.value
-            val compactMode = repository.isCompactSpeedTextEnabled.value
-            val isBlank = repository.isBlankNotificationEnabled.value
-            val isTransparentIcon = repository.isNotificationTransparentIconEnabled.value
-
             val isLocked = keyguardManager.isKeyguardLocked
-            val forceLiveUpdate = isShowOnLockscreenEnabled && isLocked
+            val forceLiveUpdate = repository.isShowOnLockscreenEnabled.value && isLocked
 
-            notificationHelper.buildNotification(
-                speed, isLiveUpdate, isNotificationEnabled,
-                textUp, textDown, upFirst, displayMode,
-                textSize, unitSize, threshold, lowTrafficMode,
-                useCustomColor, color, speedUnit, compactMode, isBlank,
-                isTransparentIcon, forceLiveUpdate
+            notificationHelper.buildIfChanged(
+                speed = speed,
+                isLiveUpdate = repository.isLiveUpdateEnabled.value,
+                isNotificationEnabled = repository.isNotificationEnabled.value,
+                textUp = repository.notificationTextUp.value,
+                textDown = repository.notificationTextDown.value,
+                upFirst = repository.notificationOrderUpFirst.value,
+                displayMode = repository.notificationDisplayMode.value,
+                iconMode = repository.notificationIconMode.value,
+                nowbarShowArrows = repository.nowbarShowArrows.value,
+                nowbarExpandedMode = repository.nowbarExpandedMode.value,
+                textSize = repository.notificationTextSize.value,
+                unitSize = repository.notificationUnitSize.value,
+                threshold = repository.notificationThreshold.value,
+                lowTrafficMode = repository.notificationLowTrafficMode.value,
+                useCustomColor = repository.notificationUseCustomColor.value,
+                color = repository.notificationColor.value,
+                speedUnit = repository.speedUnit.value,
+                minSpeedUnit = repository.minSpeedUnit.value,
+                rateUnit = repository.speedRateUnit.value,
+                compactMode = repository.isCompactSpeedTextEnabled.value,
+                hideKiloDecimals = repository.isHideKiloDecimalsEnabled.value,
+                isBlank = repository.isBlankNotificationEnabled.value,
+                isTransparentIcon = repository.isNotificationTransparentIconEnabled.value,
+                forceLiveUpdateOnLockscreen = forceLiveUpdate,
+                fontPreset = repository.fontPreset.value,
+                customFontPath = repository.customFontPath.value
             )
         }
-        notificationManager.notify(NotificationHelper.NOTIFICATION_ID, notification)
+        if (notification != null) {
+            notificationManager.notify(NotificationHelper.NOTIFICATION_ID, notification)
+        }
     }
 
     private fun updateNotificationManually() {
         scope.launch {
+            notificationHelper.resetRenderCache()
             updateNotification(repository.netSpeed.value)
         }
     }
@@ -200,7 +211,7 @@ class NetworkMonitorService : Service() {
                     Log.d(TAG, "Screen OFF: Scheduling sleep in 2 minutes")
                     stopMonitoringJob?.cancel()
                     stopMonitoringJob = scope.launch {
-                        delay(2 * 60 * 1000L) // 2 minutes
+                        delay(2 * 60 * 1000L)
                         Log.d(TAG, "Screen OFF Timeout: Stopping monitoring to save power")
                         repository.stopMonitoring()
                     }
@@ -228,6 +239,7 @@ class NetworkMonitorService : Service() {
         stopMonitoringJob?.cancel()
         overlayWindow.hide()
         repository.stopMonitoring()
+        notificationHelper.resetRenderCache()
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 }

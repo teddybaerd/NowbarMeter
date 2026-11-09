@@ -28,7 +28,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -56,16 +55,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.kakao.taxi.data.repository.NetworkRepository
+import com.kakao.taxi.data.model.AppThemeMode
 import com.kakao.taxi.data.source.NetSpeedData
+import com.kakao.taxi.format.SpeedFormatter
 import com.kakao.taxi.ui.MainViewModel
 import com.kakao.taxi.ui.settings.SettingsActivity
+import com.kakao.taxi.ui.theme.CustomFontManager
 import com.kakao.taxi.ui.theme.PixelPulseTheme
 
 class MainActivity : ComponentActivity() {
@@ -76,13 +79,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val isOledTheme by viewModel.isOledThemeEnabled.collectAsState(initial = false)
-            PixelPulseTheme(isOledTheme = isOledTheme) {
+            val appThemeMode by viewModel.appThemeMode.collectAsState(initial = AppThemeMode.Dynamic.value)
+            val appThemeColor by viewModel.appThemeColor.collectAsState(initial = AppThemeMode.DEFAULT_THEME_COLOR)
+            PixelPulseTheme(
+                isOledTheme = isOledTheme,
+                themeMode = appThemeMode,
+                themeColor = appThemeColor
+            ) {
                 HomeScreen()
             }
         }
     }
 
-    private fun launchSpeedTest(context: android.content.Context) {
+    private fun launchSpeedTest(context: Context) {
         val url = "https://speed.cloudflare.com"
         val customTabsIntent = CustomTabsIntent.Builder()
             .setShowTitle(true)
@@ -101,8 +110,17 @@ class MainActivity : ComponentActivity() {
         val isHideFromRecents by viewModel.isHideFromRecents.collectAsState(initial = false)
         val serviceError by viewModel.serviceStartError.collectAsState()
         val speedUnit by viewModel.speedUnit.collectAsState()
+        val speedRateUnit by viewModel.speedRateUnit.collectAsState()
+        val minSpeedUnit by viewModel.minSpeedUnit.collectAsState()
+        val hideKiloDecimals by viewModel.isHideKiloDecimalsEnabled.collectAsState()
         val compactMode by viewModel.isCompactSpeedTextEnabled.collectAsState(initial = false)
         val isOledTheme by viewModel.isOledThemeEnabled.collectAsState(initial = false)
+        val fontPreset by viewModel.fontPreset.collectAsState()
+        val customFontPath by viewModel.customFontPath.collectAsState()
+
+        val fontFamily = remember(fontPreset, customFontPath) {
+            CustomFontManager.getComposeFontFamily(fontPreset, customFontPath)
+        }
 
         val updateInfo by viewModel.updateAvailable.collectAsState()
         val skippedVersion by viewModel.skippedUpdateVersion.collectAsState(initial = "")
@@ -111,23 +129,36 @@ class MainActivity : ComponentActivity() {
             viewModel.checkForUpdates(BuildConfig.VERSION_NAME, skippedVersion)
         }
 
-        if (updateInfo != null) {
+        updateInfo?.let { info ->
+            val targetUrl = info.apkDownloadUrl ?: info.htmlUrl
             AlertDialog(
                 onDismissRequest = { viewModel.clearUpdateDialog() },
-                title = { Text("Update Available") },
-                text = { Text("Version ${updateInfo!!.versionName} is now available on GitHub.") },
+                title = { Text("Update Available (v${info.versionName})") },
+                text = {
+                    Column {
+                        Text("Version ${info.versionName} is now available on GitHub.")
+                        if (info.releaseNotes.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = info.releaseNotes.take(400),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                },
                 confirmButton = {
                     TextButton(onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, updateInfo!!.url.toUri())
+                        val intent = Intent(Intent.ACTION_VIEW, targetUrl.toUri())
                         context.startActivity(intent)
                         viewModel.clearUpdateDialog()
                     }) {
-                        Text("Update")
+                        Text(if (info.apkDownloadUrl != null) "Download APK" else "Update")
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = {
-                        viewModel.skipUpdate(updateInfo!!.versionName)
+                        viewModel.skipUpdate(info.versionName)
                     }) {
                         Text("Skip")
                     }
@@ -137,7 +168,7 @@ class MainActivity : ComponentActivity() {
 
         val powerManager = remember { context.getSystemService(Context.POWER_SERVICE) as PowerManager }
         var isIgnoringBattery by remember {
-            mutableStateOf<Boolean>(powerManager.isIgnoringBatteryOptimizations(context.packageName))
+            mutableStateOf(powerManager.isIgnoringBatteryOptimizations(context.packageName))
         }
 
         val lifecycleOwner = LocalLifecycleOwner.current
@@ -162,7 +193,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Permission Launcher
         val notificationPermissionLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission(),
             onResult = { isGranted ->
@@ -184,7 +214,7 @@ class MainActivity : ComponentActivity() {
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Settings,
-                                contentDescription = "Settings"
+                                contentDescription = stringResource(R.string.content_description_settings)
                             )
                         }
                     }
@@ -198,10 +228,17 @@ class MainActivity : ComponentActivity() {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    SpeedDashboardCard(speed, speedUnit, compactMode)
+                    SpeedDashboardCard(
+                        speed = speed,
+                        speedUnit = speedUnit,
+                        speedRateUnit = speedRateUnit,
+                        minSpeedUnit = minSpeedUnit,
+                        compactMode = compactMode,
+                        hideKiloDecimals = hideKiloDecimals,
+                        fontFamily = fontFamily
+                    )
                 }
 
-                // Configuration Section
                 if (serviceError != null || !isIgnoringBattery) {
                     item {
                         Text(
@@ -212,7 +249,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // Service Permission Error Card
                 if (serviceError != null) {
                     item {
                         Card(
@@ -268,7 +304,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // Battery Optimization Warning Card
                 if (!isIgnoringBattery) {
                     item {
                         Card(
@@ -330,7 +365,6 @@ class MainActivity : ComponentActivity() {
                             }
                             Spacer(Modifier.height(16.dp))
                             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                // Start Button
                                 Button(
                                     onClick = {
                                         view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
@@ -341,7 +375,6 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     Text(stringResource(R.string.action_start))
                                 }
-                                // Stop Button
                                 Button(
                                     onClick = {
                                         view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
@@ -411,7 +444,7 @@ class MainActivity : ComponentActivity() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                Icons.Default.NetworkCheck,
+                                painter = painterResource(R.drawable.ic_network_check),
                                 contentDescription = null,
                                 tint = if (isOledTheme && isSystemInDarkTheme()) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -437,7 +470,15 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun SpeedDashboardCard(speed: NetSpeedData, speedUnit: String = "0", compactMode: Boolean = false) {
+fun SpeedDashboardCard(
+    speed: NetSpeedData,
+    speedUnit: String = "0",
+    speedRateUnit: Int = 0,
+    minSpeedUnit: Int = 0,
+    compactMode: Boolean = false,
+    hideKiloDecimals: Boolean = true,
+    fontFamily: FontFamily = FontFamily.Default
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -452,8 +493,15 @@ fun SpeedDashboardCard(speed: NetSpeedData, speedUnit: String = "0", compactMode
                 style = MaterialTheme.typography.labelMedium
             )
             Text(
-                NetworkRepository.formatSpeedLine(speed.totalSpeed, speedUnit, compactMode),
-                style = MaterialTheme.typography.displayMedium,
+                SpeedFormatter.formatSpeedLine(
+                    bytes = speed.totalSpeed,
+                    speedUnit = speedUnit,
+                    compact = compactMode,
+                    hideKiloDecimals = hideKiloDecimals,
+                    minSpeedUnit = minSpeedUnit,
+                    rateUnit = speedRateUnit
+                ),
+                style = MaterialTheme.typography.displayMedium.copy(fontFamily = fontFamily),
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -467,8 +515,15 @@ fun SpeedDashboardCard(speed: NetSpeedData, speedUnit: String = "0", compactMode
                         style = MaterialTheme.typography.bodySmall
                     )
                     Text(
-                        "▼ " + NetworkRepository.formatSpeedLine(speed.downloadSpeed, speedUnit, compactMode),
-                        style = MaterialTheme.typography.titleMedium
+                        "▼ " + SpeedFormatter.formatSpeedLine(
+                            bytes = speed.downloadSpeed,
+                            speedUnit = speedUnit,
+                            compact = compactMode,
+                            hideKiloDecimals = hideKiloDecimals,
+                            minSpeedUnit = minSpeedUnit,
+                            rateUnit = speedRateUnit
+                        ),
+                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = fontFamily)
                     )
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -477,8 +532,15 @@ fun SpeedDashboardCard(speed: NetSpeedData, speedUnit: String = "0", compactMode
                         style = MaterialTheme.typography.bodySmall
                     )
                     Text(
-                        "▲ " + NetworkRepository.formatSpeedLine(speed.uploadSpeed, speedUnit, compactMode),
-                        style = MaterialTheme.typography.titleMedium
+                        "▲ " + SpeedFormatter.formatSpeedLine(
+                            bytes = speed.uploadSpeed,
+                            speedUnit = speedUnit,
+                            compact = compactMode,
+                            hideKiloDecimals = hideKiloDecimals,
+                            minSpeedUnit = minSpeedUnit,
+                            rateUnit = speedRateUnit
+                        ),
+                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = fontFamily)
                     )
                 }
             }
@@ -514,7 +576,9 @@ fun ConfigRow(
             checked = checked,
             onCheckedChange = { isChecked ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    view.performHapticFeedback(if (isChecked) HapticFeedbackConstants.TOGGLE_ON else HapticFeedbackConstants.TOGGLE_OFF)
+                    view.performHapticFeedback(
+                        if (isChecked) HapticFeedbackConstants.TOGGLE_ON else HapticFeedbackConstants.TOGGLE_OFF
+                    )
                 } else {
                     view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                 }
