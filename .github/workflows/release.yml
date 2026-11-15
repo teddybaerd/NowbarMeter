@@ -20,6 +20,9 @@ jobs:
       - run: chmod +x gradlew
       - run: ./gradlew :app:assembleStandardDebug :app:lintStandardDebug --no-daemon
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: NowbarMeter-standard-test
-          path: app/build/outputs/apk/standard/debug/*.apk
+          path: |
+            app/build/outputs/apk/standard/debug/*.apk
+            app/build/reports/lint-results-standardDebug.*
