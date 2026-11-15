@@ -13,6 +13,10 @@ on:
         description: 'Successful Signed APK workflow run ID'
         required: true
         type: string
+      draft_release_id:
+        description: 'Optional existing draft release ID to verify and publish'
+        required: false
+        type: string
       source_commit:
         description: 'Full source commit SHA from the signed build'
         required: true
@@ -36,6 +40,7 @@ jobs:
       RELEASE_VERSION: ${{ inputs.version }}
       SIGNED_RUN_ID: ${{ inputs.signed_run_id }}
       SOURCE_COMMIT: ${{ inputs.source_commit }}
+      DRAFT_RELEASE_ID: ${{ inputs.draft_release_id }}
       EXPECTED_CERT: 0f65afdc3a15ba9ff9cf196a05418484481737530d8562015814a6fca5978fdf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -48,14 +53,15 @@ jobs:
           import json, os, re
           from pathlib import Path
           request = json.loads(Path('release-request.json').read_text())
-          assert set(request) == {'version', 'signed_run_id', 'source_commit'}
+          assert {'version', 'signed_run_id', 'source_commit'} <= set(request) <= {'version', 'signed_run_id', 'source_commit', 'draft_release_id'}
+          assert not request.get('draft_release_id') or re.fullmatch(r'[0-9]+', request['draft_release_id'])
           assert all(isinstance(v, str) for v in request.values())
           assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', request['version'])
           assert re.fullmatch(r'[0-9]+', request['signed_run_id'])
           assert re.fullmatch(r'[0-9a-f]{40}', request['source_commit'])
           with open(os.environ['GITHUB_ENV'], 'a') as env:
-              for key, variable in [('version', 'RELEASE_VERSION'), ('signed_run_id', 'SIGNED_RUN_ID'), ('source_commit', 'SOURCE_COMMIT')]:
-                  env.write(variable + '=' + request[key] + '\n')
+              for key, variable in [('version', 'RELEASE_VERSION'), ('signed_run_id', 'SIGNED_RUN_ID'), ('source_commit', 'SOURCE_COMMIT'), ('draft_release_id', 'DRAFT_RELEASE_ID')]:
+                  env.write(variable + '=' + request.get(key, '') + '\n')
           PY
       - name: Validate build identity and download signed artifact
         shell: bash
@@ -149,23 +155,39 @@ jobs:
           gh api "repos/$GH_REPO/commits/$SOURCE_COMMIT" --jq '.sha' | grep -Fx "$SOURCE_COMMIT"
           # Use release notes from the exact source revision that produced the APK.
           gh api "repos/$GH_REPO/contents/RELEASE_NOTES.md?ref=$SOURCE_COMMIT" --jq '.content' | base64 --decode > release-notes.md
-          gh api "repos/$GH_REPO/releases?per_page=100" > releases.json
-          gh api "repos/$GH_REPO/git/matching-refs/tags/v$RELEASE_VERSION" > tags.json
-          python3 - <<'PY'
+          if [[ -n "$DRAFT_RELEASE_ID" ]]; then
+            [[ "$DRAFT_RELEASE_ID" =~ ^[0-9]+$ ]]
+            echo "$DRAFT_RELEASE_ID" > draft-id
+          else
+            gh api "repos/$GH_REPO/releases?per_page=100" > releases.json
+            gh api "repos/$GH_REPO/git/matching-refs/tags/v$RELEASE_VERSION" > tags.json
+            python3 - <<'PY'
           import json, os
           from pathlib import Path
           tag = 'v' + os.environ['RELEASE_VERSION']
           assert not any(r['tag_name'] == tag for r in json.loads(Path('releases.json').read_text()))
           assert not any(r['ref'] == 'refs/tags/' + tag for r in json.loads(Path('tags.json').read_text()))
+          request = {'tag_name': tag, 'target_commitish': os.environ['SOURCE_COMMIT'], 'name': 'Nowbar Meter ' + os.environ['RELEASE_VERSION'], 'body': Path('release-notes.md').read_text(), 'draft': True, 'prerelease': False}
+          Path('create-release.json').write_text(json.dumps(request))
           PY
-          gh release create "v$RELEASE_VERSION" verified/* --draft --target "$SOURCE_COMMIT" --title "Nowbar Meter $RELEASE_VERSION" --notes-file release-notes.md
-          gh api "repos/$GH_REPO/releases?per_page=100" > drafts.json
+            gh api --method POST "repos/$GH_REPO/releases" --input create-release.json > created-release.json
+            python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          release = json.loads(Path('created-release.json').read_text())
+          assert release['tag_name'] == 'v' + os.environ['RELEASE_VERSION']
+          assert release['draft'] and release['target_commitish'] == os.environ['SOURCE_COMMIT']
+          Path('draft-id').write_text(str(int(release['id'])))
+          PY
+            gh release upload "v$RELEASE_VERSION" verified/*
+          fi
+          draft_id=$(cat draft-id)
+          gh api "repos/$GH_REPO/releases/$draft_id" > draft-release.json
           python3 - <<'PY'
           import hashlib, json, os
           from pathlib import Path
-          matches = [r for r in json.loads(Path('drafts.json').read_text()) if r['tag_name'] == 'v' + os.environ['RELEASE_VERSION']]
-          assert len(matches) == 1
-          release = matches[0]
+          release = json.loads(Path('draft-release.json').read_text())
+          assert release['tag_name'] == 'v' + os.environ['RELEASE_VERSION']
           assert release['draft'] and not release['prerelease']
           assert release['target_commitish'] == os.environ['SOURCE_COMMIT']
           assets = {a['name']: a for a in release['assets']}
@@ -176,4 +198,12 @@ jobs:
               assert asset['state'] == 'uploaded' and asset['size'] == file.stat().st_size
               assert asset['digest'] == 'sha256:' + hashlib.sha256(file.read_bytes()).hexdigest()
           PY
-          gh release edit "v$RELEASE_VERSION" --draft=false --latest
+          gh api --method PATCH "repos/$GH_REPO/releases/$draft_id" -F draft=false -f make_latest=true > published-release.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          release = json.loads(Path('published-release.json').read_text())
+          assert not release['draft'] and not release['prerelease']
+          assert release['tag_name'] == 'v' + os.environ['RELEASE_VERSION']
+          print(release['html_url'])
+          PY
