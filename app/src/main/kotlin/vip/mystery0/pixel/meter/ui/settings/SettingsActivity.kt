@@ -1,4 +1,4 @@
-package com.kakao.taxi.ui.settings
+package de.teddybaerd.nowbarmeter.ui.settings
 
 import android.content.Intent
 import android.os.Build
@@ -66,12 +66,12 @@ import com.github.skydoves.colorpicker.compose.AlphaTile
 import com.github.skydoves.colorpicker.compose.BrightnessSlider
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
-import com.kakao.taxi.BuildConfig
-import com.kakao.taxi.R
-import com.kakao.taxi.data.model.AppThemeMode
-import com.kakao.taxi.format.SpeedFormatter
-import com.kakao.taxi.ui.theme.CustomFontManager
-import com.kakao.taxi.ui.theme.PixelPulseTheme
+import de.teddybaerd.nowbarmeter.BuildConfig
+import de.teddybaerd.nowbarmeter.R
+import de.teddybaerd.nowbarmeter.data.model.AppThemeMode
+import de.teddybaerd.nowbarmeter.format.SpeedFormatter
+import de.teddybaerd.nowbarmeter.ui.theme.CustomFontManager
+import de.teddybaerd.nowbarmeter.ui.theme.PixelPulseTheme
 import me.zhanghai.compose.preference.ListPreference
 import me.zhanghai.compose.preference.LocalPreferenceTheme
 import me.zhanghai.compose.preference.Preference
@@ -1234,10 +1234,10 @@ fun AboutSection() {
     )
     Preference(
         title = { Text(stringResource(R.string.settings_github)) },
-        summary = { Text("https://github.com/realMoai/NowbarMeter") },
+        summary = { Text("https://github.com/teddybaerd/NowbarMeter") },
         onClick = {
             view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
-            uriHandler.openUri("https://github.com/realMoai/NowbarMeter")
+            uriHandler.openUri("https://github.com/teddybaerd/NowbarMeter")
         }
     )
 }

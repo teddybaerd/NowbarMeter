@@ -1,4 +1,4 @@
-package com.kakao.taxi.data.source.impl
+package de.teddybaerd.nowbarmeter.data.source.impl
 
 import android.net.ConnectivityManager
 import android.net.LinkProperties
@@ -10,8 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
-import com.kakao.taxi.data.source.ISpeedDataSource
-import com.kakao.taxi.data.source.NetworkTrafficData
+import de.teddybaerd.nowbarmeter.data.source.ISpeedDataSource
+import de.teddybaerd.nowbarmeter.data.source.NetworkTrafficData
 import java.util.concurrent.ConcurrentHashMap
 
 class SpeedDataSource(

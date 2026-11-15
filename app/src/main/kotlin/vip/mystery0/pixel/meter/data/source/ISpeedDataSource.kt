@@ -1,4 +1,4 @@
-package com.kakao.taxi.data.source
+package de.teddybaerd.nowbarmeter.data.source
 
 import androidx.compose.runtime.Immutable
 

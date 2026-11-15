@@ -1,4 +1,4 @@
-package com.kakao.taxi.ui.overlay
+package de.teddybaerd.nowbarmeter.ui.overlay
 
 import android.content.ComponentCallbacks
 import android.content.Context
@@ -51,11 +51,11 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.kakao.taxi.data.repository.NetworkRepository
-import com.kakao.taxi.data.source.NetSpeedData
-import com.kakao.taxi.format.SpeedFormatter
-import com.kakao.taxi.ui.theme.CustomFontManager
-import com.kakao.taxi.ui.theme.PixelPulseTheme
+import de.teddybaerd.nowbarmeter.data.repository.NetworkRepository
+import de.teddybaerd.nowbarmeter.data.source.NetSpeedData
+import de.teddybaerd.nowbarmeter.format.SpeedFormatter
+import de.teddybaerd.nowbarmeter.ui.theme.CustomFontManager
+import de.teddybaerd.nowbarmeter.ui.theme.PixelPulseTheme
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 

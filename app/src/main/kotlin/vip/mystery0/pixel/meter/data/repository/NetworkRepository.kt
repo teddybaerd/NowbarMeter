@@ -1,11 +1,11 @@
-package com.kakao.taxi.data.repository
+package de.teddybaerd.nowbarmeter.data.repository
 
 import android.os.SystemClock
 import android.util.Log
-import com.kakao.taxi.data.model.AppThemeMode
-import com.kakao.taxi.data.source.NetSpeedData
-import com.kakao.taxi.data.source.impl.SpeedDataSource
-import com.kakao.taxi.format.SpeedFormatter
+import de.teddybaerd.nowbarmeter.data.model.AppThemeMode
+import de.teddybaerd.nowbarmeter.data.source.NetSpeedData
+import de.teddybaerd.nowbarmeter.data.source.impl.SpeedDataSource
+import de.teddybaerd.nowbarmeter.format.SpeedFormatter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

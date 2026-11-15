@@ -1,0 +1,155 @@
+name: Publish verified signed release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Stable version, e.g. 1.4.0'
+        required: true
+        type: string
+      signed_run_id:
+        description: 'Successful Signed APK workflow run ID'
+        required: true
+        type: string
+      source_commit:
+        description: 'Full source commit SHA from the signed build'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: publish-signed-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_VERSION: ${{ inputs.version }}
+      SIGNED_RUN_ID: ${{ inputs.signed_run_id }}
+      SOURCE_COMMIT: ${{ inputs.source_commit }}
+      EXPECTED_CERT: 0f65afdc3a15ba9ff9cf196a05418484481737530d8562015814a6fca5978fdf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Validate build identity and download signed artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', os.environ['RELEASE_VERSION'])
+          assert re.fullmatch(r'[0-9]+', os.environ['SIGNED_RUN_ID'])
+          assert re.fullmatch(r'[0-9a-f]{40}', os.environ['SOURCE_COMMIT'])
+          assert Path('RELEASE_NOTES.md').is_file()
+          PY
+          gh api "repos/$GH_REPO/actions/runs/$SIGNED_RUN_ID" > run.json
+          gh api "repos/$GH_REPO/actions/runs/$SIGNED_RUN_ID/artifacts?per_page=100" > artifacts.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          run = json.loads(Path('run.json').read_text())
+          assert run['status'] == 'completed' and run['conclusion'] == 'success'
+          assert run['path'] == '.github/workflows/signed-apk.yml'
+          assert run['event'] == 'workflow_dispatch' and run['head_branch'] == 'master'
+          assert run['head_sha'] == os.environ['SOURCE_COMMIT']
+          assert run['repository']['full_name'] == os.environ['GH_REPO']
+          assets = json.loads(Path('artifacts.json').read_text())['artifacts']
+          candidates = [a for a in assets if a['name'] == 'NowbarMeter-' + os.environ['RELEASE_VERSION'] + '-signed' and not a['expired']]
+          assert len(candidates) == 1
+          artifact = candidates[0]
+          Path('artifact.json').write_text(json.dumps(artifact))
+          Path('artifact-id').write_text(str(int(artifact['id'])))
+          PY
+          artifact_id=$(cat artifact-id)
+          gh api "repos/$GH_REPO/actions/artifacts/$artifact_id/zip" > signed.zip
+      - name: Verify signed artifact checksums and metadata
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, zipfile
+          from pathlib import Path
+          digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          artifact = json.loads(Path('artifact.json').read_text())
+          assert artifact['digest'] == 'sha256:' + digest(Path('signed.zip'))
+          version = os.environ['RELEASE_VERSION']
+          apk_name = f'NowbarMeter-v{version}-standard.apk'
+          expected = {apk_name, 'SHA256SUMS.txt', 'build-info.json', 'signing-certificate-sha256.txt'}
+          destination = Path('verified'); destination.mkdir()
+          with zipfile.ZipFile('signed.zip') as archive:
+              assert len(archive.infolist()) == 4 and set(archive.namelist()) == expected
+              for item in archive.infolist():
+                  assert 0 < item.file_size <= (100 * 1024 * 1024 if item.filename == apk_name else 65536)
+                  (destination / item.filename).write_bytes(archive.read(item))
+          info = json.loads((destination / 'build-info.json').read_text())
+          assert info['version'] == version and info['source_commit'] == os.environ['SOURCE_COMMIT']
+          assert info['package'] == 'de.teddybaerd.nowbarmeter'
+          assert info['certificate_sha256'] == os.environ['EXPECTED_CERT']
+          assert (destination / 'signing-certificate-sha256.txt').read_text().strip() == os.environ['EXPECTED_CERT']
+          assert info['apk_sha256'] == digest(destination / apk_name)
+          assert (destination / 'SHA256SUMS.txt').read_text().split() == [info['apk_sha256'], apk_name]
+          PY
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify APK signature and package
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'build-tools;36.0.0'
+          TOOLS="$ANDROID_HOME/build-tools/36.0.0"
+          "$TOOLS/apksigner" verify --verbose --print-certs "verified/NowbarMeter-v${RELEASE_VERSION}-standard.apk" > signature.txt
+          "$TOOLS/aapt" dump badging "verified/NowbarMeter-v${RELEASE_VERSION}-standard.apk" > badging.txt
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          certs = re.findall(r'^Signer #\d+ certificate SHA-256 digest: ([0-9a-fA-F]+)$', Path('signature.txt').read_text(), re.M)
+          assert [c.lower() for c in certs] == [os.environ['EXPECTED_CERT']]
+          badging = Path('badging.txt').read_text()
+          assert "package: name='de.teddybaerd.nowbarmeter'" in badging.splitlines()[0]
+          assert "versionName='" + os.environ['RELEASE_VERSION'] + "'" in badging.splitlines()[0]
+          assert 'application-debuggable' not in badging
+          PY
+      - name: Create verified draft and publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GH_REPO/actions/runs/$SIGNED_RUN_ID" --jq '.head_sha' | grep -Fx "$SOURCE_COMMIT"
+          gh api "repos/$GH_REPO/commits/$SOURCE_COMMIT" --jq '.sha' | grep -Fx "$SOURCE_COMMIT"
+          # Use release notes from the exact source revision that produced the APK.
+          gh api "repos/$GH_REPO/contents/RELEASE_NOTES.md?ref=$SOURCE_COMMIT" --jq '.content' | base64 --decode > release-notes.md
+          gh api "repos/$GH_REPO/releases?per_page=100" > releases.json
+          gh api "repos/$GH_REPO/git/matching-refs/tags/v$RELEASE_VERSION" > tags.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          tag = 'v' + os.environ['RELEASE_VERSION']
+          assert not any(r['tag_name'] == tag for r in json.loads(Path('releases.json').read_text()))
+          assert not any(r['ref'] == 'refs/tags/' + tag for r in json.loads(Path('tags.json').read_text()))
+          PY
+          gh release create "v$RELEASE_VERSION" verified/* --draft --target "$SOURCE_COMMIT" --title "Nowbar Meter $RELEASE_VERSION" --notes-file release-notes.md
+          gh api "repos/$GH_REPO/releases?per_page=100" > drafts.json
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          matches = [r for r in json.loads(Path('drafts.json').read_text()) if r['tag_name'] == 'v' + os.environ['RELEASE_VERSION']]
+          assert len(matches) == 1
+          release = matches[0]
+          assert release['draft'] and not release['prerelease']
+          assert release['target_commitish'] == os.environ['SOURCE_COMMIT']
+          assets = {a['name']: a for a in release['assets']}
+          files = {p.name: p for p in Path('verified').iterdir()}
+          assert assets.keys() == files.keys()
+          for name, file in files.items():
+              asset = assets[name]
+              assert asset['state'] == 'uploaded' and asset['size'] == file.stat().st_size
+              assert asset['digest'] == 'sha256:' + hashlib.sha256(file.read_bytes()).hexdigest()
+          PY
+          gh release edit "v$RELEASE_VERSION" --draft=false --latest

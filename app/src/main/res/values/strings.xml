@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name" translatable="false">Nowbar Meter</string>
     <string name="title_configuration">Configuration</string>
     <string name="title_monitor_control">Monitor Control</string>
     <string name="label_total_speed">Total Speed</string>
@@ -178,4 +177,9 @@
 
     <string name="battery_optimization_warning_title">Background Execution Restricted</string>
     <string name="battery_optimization_warning_subtitle">Tap to disable battery optimization so the meter doesn\'t stop.</string>
+    <string name="update_available_title">Update available (v%1$s)</string>
+    <string name="update_available_message">Version %1$s is now available on GitHub.</string>
+    <string name="action_download_apk">Download APK</string>
+    <string name="action_update">Update</string>
+    <string name="action_skip_version">Skip version</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.kakao.taxi.format
+package de.teddybaerd.nowbarmeter.format
 
 import java.util.Locale
 import kotlin.math.roundToLong

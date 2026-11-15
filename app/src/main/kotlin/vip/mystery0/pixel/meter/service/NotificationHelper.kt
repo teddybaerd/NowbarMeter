@@ -1,4 +1,4 @@
-package com.kakao.taxi.service
+package de.teddybaerd.nowbarmeter.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -15,11 +15,11 @@ import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
-import com.kakao.taxi.MainActivity
-import com.kakao.taxi.R
-import com.kakao.taxi.data.source.NetSpeedData
-import com.kakao.taxi.format.SpeedFormatter
-import com.kakao.taxi.ui.theme.CustomFontManager
+import de.teddybaerd.nowbarmeter.MainActivity
+import de.teddybaerd.nowbarmeter.R
+import de.teddybaerd.nowbarmeter.data.source.NetSpeedData
+import de.teddybaerd.nowbarmeter.format.SpeedFormatter
+import de.teddybaerd.nowbarmeter.ui.theme.CustomFontManager
 import kotlin.math.roundToInt
 
 class NotificationHelper(private val context: Context) {
@@ -42,7 +42,7 @@ class NotificationHelper(private val context: Context) {
                 context.getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Shows real-time network speed in status bar"
+                description = context.getString(R.string.notification_channel_description)
                 setShowBadge(false)
                 setGroup(CHANNEL_ID)
                 setSound(null, null)

@@ -1,4 +1,4 @@
-package com.kakao.taxi.ui
+package de.teddybaerd.nowbarmeter.ui
 
 import android.Manifest
 import android.app.Application
@@ -10,11 +10,12 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.kakao.taxi.R
-import com.kakao.taxi.data.repository.NetworkRepository
-import com.kakao.taxi.permissions.DisplayPermissionState
-import com.kakao.taxi.permissions.ServiceStartCheckResult
-import com.kakao.taxi.service.NetworkMonitorService
+import de.teddybaerd.nowbarmeter.R
+import de.teddybaerd.nowbarmeter.BuildConfig
+import de.teddybaerd.nowbarmeter.data.repository.NetworkRepository
+import de.teddybaerd.nowbarmeter.permissions.DisplayPermissionState
+import de.teddybaerd.nowbarmeter.permissions.ServiceStartCheckResult
+import de.teddybaerd.nowbarmeter.service.NetworkMonitorService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -75,7 +76,7 @@ class MainViewModel(
     fun checkForUpdates(currentVersion: String, skippedVersion: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val url = URL("https://api.github.com/repos/realMoai/NowbarMeter/releases/latest")
+                val url = URL("https://api.github.com/repos/teddybaerd/NowbarMeter/releases/latest")
                 val connection = url.openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
                 connection.connectTimeout = 5000
@@ -95,7 +96,7 @@ class MainViewModel(
                             val asset = assets.optJSONObject(i) ?: continue
                             val name = asset.optString("name", "")
                             val downloadUrl = asset.optString("browser_download_url", "")
-                            if (name.endsWith(".apk", ignoreCase = true) && downloadUrl.isNotEmpty()) {
+                            if (name.endsWith("-${BuildConfig.FLAVOR}.apk", ignoreCase = true) && downloadUrl.isNotEmpty()) {
                                 apkUrl = downloadUrl
                                 break
                             }

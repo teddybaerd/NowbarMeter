@@ -1,9 +1,13 @@
 # First release checklist
 
-- [ ] Include a complete German translation before the first release of this continuation.
-  - Translate settings, notifications, permission explanations and update dialogs.
-  - Move any remaining hardcoded English interface text into translatable resources.
-  - Preserve placeholders and formatting and include German in the generated locale configuration.
-  - Verify automatic German selection and text layout on a German-language device.
+- [x] Standard build with independent application ID.
+- [x] Maintainer device tests: Android 17 Now Bar, Android 12 status icon, sampling interval, reboot autostart and extended standby.
+- [x] Complete German resources, including formerly hardcoded update UI and notification-channel description.
+- [x] Validate translation completeness and formatting placeholders.
+- [x] Update README, attribution and concise release notes.
+- [ ] Verify final release build and German layout on a physical device.
+- [x] Create and independently back up a dedicated persistent release signing key.
+- [ ] Configure environment-scoped signing secrets with build, signing and publication separated.
+- [ ] Publish the first signed release after the final checks pass.
 
-Requested by the maintainer on 2026-11-15. This is planned work and has not yet been implemented.
+German translation requested on 2026-11-15. Earlier device tests used the debug standard variant before German translation.

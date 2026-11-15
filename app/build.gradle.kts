@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-val packageName = "com.kakao.taxi"
+val packageName = "de.teddybaerd.nowbarmeter"
 
 private val androidLocaleQualifierRegex = Regex("""^(?:[a-z]{2,3}(?:-r[A-Z]{2})?|b\+[A-Za-z]{2,3}(?:\+[A-Za-z0-9]{2,8})*)$""")
 
@@ -47,11 +47,23 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.kakao.taxi"
+        applicationId = packageName
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 3
+        versionCode = 5
         versionName = libs.versions.app.version.get()
+    }
+    flavorDimensions += "identity"
+    productFlavors {
+        create("standard") {
+            dimension = "identity"
+            resValue("string", "app_name", "Nowbar Meter")
+        }
+        create("compat") {
+            dimension = "identity"
+            applicationId = "com.kakao.taxi"
+            resValue("string", "app_name", "Nowbar Meter Compat")
+        }
     }
     packaging {
         dex {
@@ -68,9 +80,6 @@ android {
             excludes += "DebugProbesKt.bin"
         }
     }
-    signingConfigs {
-        create("sign")
-    }
     buildTypes {
         debug {
             isMinifyEnabled = false
@@ -83,7 +92,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("sign")
         }
     }
     compileOptions {
@@ -95,6 +103,8 @@ android {
         buildConfig = true
     }
     lint {
+        // Upstream translations are incomplete; Android falls back to English.
+        warning += "MissingTranslation"
         checkReleaseBuilds = false
     }
     @Suppress("UnstableApiUsage")
@@ -123,5 +133,3 @@ dependencies {
     implementation(libs.zhanghai.preference)
     implementation(libs.skydoves.colorpicker)
 }
-
-apply(from = rootProject.file("signing.gradle"))

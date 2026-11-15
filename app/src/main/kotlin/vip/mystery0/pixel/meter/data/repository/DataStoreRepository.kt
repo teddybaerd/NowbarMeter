@@ -1,4 +1,4 @@
-package com.kakao.taxi.data.repository
+package de.teddybaerd.nowbarmeter.data.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -10,7 +10,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.kakao.taxi.data.model.AppThemeMode
+import de.teddybaerd.nowbarmeter.data.model.AppThemeMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
