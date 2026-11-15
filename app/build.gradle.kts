@@ -107,6 +107,8 @@ android {
         buildConfig = true
     }
     lint {
+        // Upstream translations are incomplete; Android falls back to English.
+        warning += "MissingTranslation"
         checkReleaseBuilds = false
     }
     @Suppress("UnstableApiUsage")
