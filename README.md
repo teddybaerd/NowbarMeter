@@ -74,4 +74,6 @@ After testing the signed APK, manually run `Publish verified signed release` wit
 
 Original Android speed monitor: [Pixel Meter / Mystery00 and contributors](https://github.com/Pixel-Tailor-CN/PixelMeter). Samsung adaptations and v1.3: realMoai. Preserved source: joelsubash2000. Continuation, independent package identity and German translation: teddybaerd.
 
+This continuation is maintained by teddybaerd with assistance from OpenAI's ChatGPT/Codex for development, troubleshooting, translations and documentation. Project decisions and device testing are handled by the maintainer.
+
 Licensed under [Apache License 2.0](LICENSE). Original notices remain in the source history. This continuation changes namespace and build variants, update endpoints, translations, documentation and release automation.
