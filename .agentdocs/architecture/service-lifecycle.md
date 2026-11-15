@@ -1,81 +1,84 @@
-# 服务生命周期与保活 (Service Lifecycle)
+# Service Lifecycle and Background Operation
 
-为了保证网速指示器在后台持续运行并实时更新，App 必须维护一个稳定的前台服务 (Foreground Service)。
+> English translation of inherited Pixel Meter design documentation, modified by teddybaerd. This document records the original design; implementation details may differ in Nowbar Meter. See the current manifest and service implementation for the configured foreground-service types and actual behavior.
 
-## 1. Service 配置
+A stable foreground service keeps the network speed indicator available in the background and updates its display.
 
-- **类名**: `NetworkMonitorService`
-- **类型**: `Foreground Service`
-- **foregroundServiceType**: `dataSync` (Android 14+ 强制要求指定类型并声明权限)。
+## 1. Service configuration
+
+- **Class:** `NetworkMonitorService`.
+- **Service category:** Foreground service.
+- **Foreground-service type in the original design:** `dataSync`. Android 14+ requires an appropriate service type and its permission declarations.
+
+The original example used:
 
 ```xml
-
-<service android:name=".service.NetworkMonitorService" android:foregroundServiceType="dataSync"
+<service
+    android:name=".service.NetworkMonitorService"
+    android:foregroundServiceType="dataSync"
     android:exported="false" />
 ```
 
-## 2. 启动与保活
+This is a historical example, not a replacement for the current manifest.
 
-### 2.1 启动流程
+## 2. Starting and maintaining the service
 
-1. **用户开启**: 用户在主界面 Toggle "Enable Monitor"。
-2. **Context.startForegroundService()**: 启动服务。
-3. **startForeground()**: 服务 onCreate/onStartCommand 中必须在 5 秒内调用 `startForeground`
-   ，绑定一个持续显示的 Notification，否则会被系统杀掉并抛出 ANR。
-   26:
-   27: ### 2.2 开机自启 (Auto-start)
-   28:
-   29: - **触发机制**: 监听 `BOOT_COMPLETED` 和 `QUICKBOOT_POWERON` 广播。
-   30: - **条件判断**:
-   31:     1. 用户开关: 检查 `key_auto_start_service` 是否为 `true`。
-   32:     2. 权限校验: 直检查应用是否持有 **悬浮窗权限** 或 **通知权限**。若两者皆无，则视为非法状态，不启动服务（避免
-   Android 14+ 启动 FGS 崩溃）。
-   33: - **实现**: `BootReceiver` 在满足上述条件后调用 `startForegroundService`。
+### 2.1 Startup sequence
 
-### 2.2 周期性任务 (Ticker)
+1. The user enables monitoring on the main screen.
+2. `Context.startForegroundService()` starts the service.
+3. The service promptly calls `startForeground()` from its startup path to attach a persistent notification. The original design specifies a five-second window; failing to promote the service within the system deadline can cause termination or an application error.
 
-- 使用 Kotlin Coroutines `flow` 或 `Handler` 实现 1000ms 的周期性任务。
-- **任务内容**:
-    - 获取当前网速 (Repository.getSpeed)。
-    - 生成 Notification Bitmap。
-    - 更新 NotificationManager。
-    - 发送 EventBus/StateFlow 消息通知 UI 层 (悬浮窗/主页)。
+### 2.2 Autostart after boot
 
-## 3. Android 14 (API 34) 适配
+- **Triggers:** Listen for `BOOT_COMPLETED` and `QUICKBOOT_POWERON` broadcasts.
+- **Conditions:**
+  1. Check that the user's `key_auto_start_service` preference is `true`.
+  2. Check whether overlay or notification permission has been granted. If neither is available, do not start the service, to avoid an invalid foreground-service startup.
+- **Implementation:** `BootReceiver` calls `startForegroundService` only after the relevant checks pass and subject to the system's startup restrictions.
 
-Android 14 对前台服务有严格限制：
+### 2.3 Periodic sampling
 
-- **权限声明**: 必须在 Manifest 中声明 `android.permission.FOREGROUND_SERVICE` 和
-  `android.permission.FOREGROUND_SERVICE_DATA_SYNC`。
-- **运行时机**: 仅当 App 处于前台（Visible）时才能调用 `startForegroundService`。若 App 在后台尝试启动服务，会抛出
-  `ForegroundServiceStartNotAllowedException`。
-    - **处理策略**: 确保服务的启动操作仅由用户在 UI 界面手动触发，或者在 BootReceiver (开机自启)
-      中依循系统允许的豁免规则进行。
+The original design proposes Kotlin coroutine flows or a `Handler` for periodic work, with a 1,000 ms example interval. The actual sampling interval is configurable.
 
-## 4. 资源释放
+Each cycle:
 
-- 当用户手动关闭功能，或点击通知栏 "Exit" 按钮时，调用 `stopForeground(STOP_FOREGROUND_REMOVE)` 并
-  `stopSelf()`，彻底释放资源，停止计费/耗电。
+- Obtain the current network speed from the repository.
+- Render the notification bitmap.
+- Update the notification through `NotificationManager`.
+- Notify UI consumers, such as the floating window and home screen, through the application's state mechanism.
 
-## 5. 电量与性能优化 (Power Optimization)
+## 3. Android 14 (API 34) considerations
 
-为了避免长期占用 CPU 导致设备无法休眠，App 内置了智能休眠与唤醒机制：
+Foreground services are subject to Android's service-type, permission and background-start restrictions.
 
-### 5.1 屏幕状态监听
+- **Permissions in the original design:** Declare `android.permission.FOREGROUND_SERVICE` and `android.permission.FOREGROUND_SERVICE_DATA_SYNC` in the manifest.
+- **Startup timing:** A service started while the app is in the background may raise `ForegroundServiceStartNotAllowedException` unless an applicable exemption permits that start.
+- **Design approach:** Start the service in response to a user action from the visible UI, or from the boot receiver when the system permits it. A boot broadcast is not an unconditional exemption on every Android version or for every service type.
 
-Service 内部通过 `BroadcastReceiver` 监听屏幕状态广播：
+Consult the current manifest and implementation when making changes for newer Android releases.
 
-- `Intent.ACTION_SCREEN_OFF`: 屏幕关闭。
-- `Intent.ACTION_SCREEN_ON`: 屏幕点亮。
+## 4. Releasing resources
 
-### 5.2 智能休眠策略
+The original design calls for stopping monitoring when the user disables the feature or uses an exit action. Call `stopForeground(STOP_FOREGROUND_REMOVE)` and `stopSelf()` as appropriate to remove the foreground notification, stop the service and release resources.
 
-1. **延迟停止**: 当检测到 **屏幕关闭** 时，Service 并不会立即停止监听（考虑到用户可能短按电源键），而是启动一个
-   **2分钟** 的倒计时。
-2. **进入休眠**: 若 2分钟内屏幕未重新点亮，Service 将主动停止网络监听协程 (`stopMonitoring`)，释放 CPU
-   锁，允许设备进入深度休眠 (Doze Mode)。
-3. **即时唤醒**: 当检测到 **屏幕点亮** 时：
-    - 若仍在 2分钟倒计时内，直接取消倒计时，无缝继续。
-    - 若已进入休眠状态，立即重启网络监听协程 (`startMonitoring`)，恢复网速更新。
+## 5. Power and performance
 
-此策略在保证用户体验（点亮屏幕即见网速）的同时，显著降低了待机功耗。
+The inherited design includes a screen-state sleep/wake strategy to reduce continuous CPU use while the display is off.
+
+### 5.1 Screen-state broadcasts
+
+The service uses a `BroadcastReceiver` to observe:
+
+- `Intent.ACTION_SCREEN_OFF`: The screen has turned off.
+- `Intent.ACTION_SCREEN_ON`: The screen has turned on.
+
+### 5.2 Sleep and wake strategy
+
+1. **Delayed pause:** When the screen turns off, start a two-minute countdown instead of immediately stopping monitoring. This accommodates a brief press of the power button.
+2. **Pause sampling:** If the screen stays off for two minutes, stop the network-monitoring coroutine through `stopMonitoring`, reducing ongoing CPU work and allowing the device to sleep.
+3. **Resume promptly:** When the screen turns on:
+   - If the countdown is still active, cancel it and keep monitoring.
+   - If sampling has paused, call `startMonitoring` to resume updates.
+
+The goal is to resume speed updates when the screen becomes visible while reducing standby work. This describes pausing sampling, not necessarily terminating the foreground service or removing its notification.

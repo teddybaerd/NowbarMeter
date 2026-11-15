@@ -1,29 +1,30 @@
-# Pixel Meter 文档索引
+# Nowbar Meter Documentation Index
 
-欢迎查阅 Pixel Meter 项目文档。本文档体系遵循 `GEMINI.md` 规范。
+This documentation originated in Pixel Meter. Translated into English by teddybaerd for the Nowbar Meter continuation.
 
-## 📁 目录结构
+The linked documents record the inherited design and requirements. Some details describe older upstream behavior; consult the repository [README](../README.md) and current source for the implemented behavior. Development guidelines are in [GEMINI.md](../GEMINI.md).
 
-### 1. 产品与需求 (PRD)
+## Documentation structure
 
-- [核心功能需求 (Requirements)](prd/requirements.md): 项目背景、核心功能清单、数据流与非功能性需求。
+### 1. Product and requirements (PRD)
 
-### 2. 架构与技术细节 (Architecture)
+- [Core requirements](prd/requirements.md): Original project background, feature list, data flow and non-functional requirements.
 
-- [混合数据源策略 (Data Source Strategy)](architecture/data-source-strategy.md): 详解 Standard API 与
-  流量接口过滤策略。
-- [服务生命周期 (Service Lifecycle)](architecture/service-lifecycle.md): 前台服务 (Foreground
-  Service) 的保活机制与 Android 14+ 适配详情。
+### 2. Architecture and technical details
 
-### 3. 界面规范 (UI)
+- [Data source strategy](architecture/data-source-strategy.md): Standard Android traffic APIs, physical-interface filtering and the history of the removed data-source approaches.
+- [Service lifecycle](architecture/service-lifecycle.md): Foreground service lifecycle, background operation and Android 14+ considerations.
 
-- [设计系统 (Design System)](ui/design-system.md): Material You 主题应用、通知栏图标绘制与悬浮窗交互规范。
+### 3. User interface
 
-### 4. 任务流 (Workflow)
+- [Design system](ui/design-system.md): Material You theme, notification icon rendering and floating-window interactions.
 
-- *待添加*
+### 4. Workflows
 
-## 🔗 相关资源
+No workflow documents have been added to this directory yet. The current build, signing and publication workflows are documented in the repository README.
 
-- [GitHub Repository](https://github.com/Mystery00/PixelMeter)
-- [GEMINI Development Guidelines](../GEMINI.md)
+## Related resources
+
+- [Nowbar Meter repository](https://github.com/teddybaerd/NowbarMeter)
+- [Upstream Pixel Meter repository](https://github.com/Pixel-Tailor-CN/PixelMeter)
+- [GEMINI development guidelines](../GEMINI.md)

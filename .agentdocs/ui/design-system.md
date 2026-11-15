@@ -1,63 +1,57 @@
-# 设计系统 (Design System)
+# Design System
 
-Pixel Meter 严格遵循 Modern Android Development (MAD) 指南，全面采用 Jetpack Compose 构建 UI。
+> English translation of inherited Pixel Meter design documentation, modified by teddybaerd. This document records the original UI design; some implementation details may differ in the current Nowbar Meter source.
 
-## 1. 主题与配色 (Theming)
+Pixel Meter follows Modern Android Development (MAD) guidelines and uses Jetpack Compose for its interface.
 
-### 1.1 Material Design String
+## 1. Theme and colors
 
-- **风格**: **Material 3 + Material You + Material Express**。
-- **动态取色 (Dynamic Color)**:
-    - 必须启用 `DynamicColors.applyToActivitiesIfAvailable(this)`。
-    - UI 颜色直接映射系统壁纸色调，确保与原生系统（Settings, Quick Settings）视觉一致。
-- **主要控件**: 使用 M3 标准组件 (`Scaffold`, `TopAppBar`, `Switch`, `Card`, `NavigationBar` 等)。
-- **设置页面 (Settings)**:
-    - 使用 `me.zhanghai.compose.preference` 构建原生风格的设置列表。
-  - **分块明确**:
-      - **General**: 基础采样间隔与权限状态。
-      - **Background**: 包含电池优化、最近任务隐藏等保活相关设置。
-      - **Notification/Overlay**: 独立配置块。
-    - 使用 `com.github.skydoves:colorpicker-compose` 实现颜色选择器。
+### 1.1 Material Design styling
 
-## 2. 通知栏动态图标 (Notification Icon)
+- **Style:** Material 3, Material You and Material Express.
+- **Dynamic colors:**
+  - The original specification called for `DynamicColors.applyToActivitiesIfAvailable(this)`.
+  - Map UI colors to the system wallpaper palette for consistency with Settings and Quick Settings.
+- **Primary controls:** Use standard Material 3 components such as `Scaffold`, `TopAppBar`, `Switch`, `Card` and `NavigationBar`.
+- **Settings screen:**
+  - Use `me.zhanghai.compose.preference` for a native-style preference list.
+  - Group settings clearly:
+    - **General:** Sampling interval and permission status.
+    - **Background:** Battery optimization, hiding from recent tasks and background-operation settings.
+    - **Notification / Overlay:** Separate configuration sections.
+  - Use `com.github.skydoves:colorpicker-compose` for color selection.
 
-### 实现方案
+## 2. Dynamic notification icon
 
-1. **默认状态**: 首次启动默认**关闭**，需用户手动开启。
-2. **创建 Bitmap**:
-    - **单行模式**: 若显示模式为 `BOTH` (同时显示)，**将上下行网速相加**，仅绘制**一行**
-      合并后的网速文本 (e.g., "5.2 M/s")。
-    - **单向模式**: 仅绘制上行或下行流量。
-3. **Canvas 绘制**: 使用 `Canvas` 和 `Paint` 将文字绘制在 Bitmap 中央。
-    - **字体大小**: 需根据系统状态栏高度动态适配，或提供用户手动调节选项。
-    - **颜色**:
-        - 默认：白色/灰色（适配深色/浅色状态栏）。
-        - 进阶：检测系统 Dark Mode 状态自动反色。
-3. **IconCompat (Pixel/Android 12+ 适配)**:
-    - **目标效果**: 在 Pixel 设备上展示一个**单色**的网速图标，颜色必须**自动适配**状态栏背景（与其他系统
-      Icon 逻辑一致）。
-    - **实现方案**:
-        - 生成仅包含 Alpha 通道的 Bitmap (Alpha Mask)。
-        - 使用 `Icon.createWithBitmap(bitmap)` (或 `IconCompat`)。
-        - 尝试设置 `SetTint` 或依赖系统对 SmallIcon 的自动着色机制。
-    - **兼容性**:
-        - 若系统无法自动着色导致显示异常（如纯白方块），则回退到 LargeIcon 方案（SmallIcon
-          使用透明/静态图标，LargeIcon 显示具体网速）。
-4. **NotificationBuilder**:
-    - 优先尝试构建纯 Alpha Bitmap 作为 SmallIcon。
-    - 必须在真机验证不同背景（浅色/深色/壁纸取色）下的可见性。
+### Rendering approach
 
-## 3. 悬浮窗 (Floating Window)
+1. **Initial state:** The original specification keeps monitoring off until the user enables it.
+2. **Create a bitmap:**
+   - **Combined mode:** Add upload and download rates, and draw a single line containing the combined speed, for example `5.2 M/s` in the original illustration.
+   - **Single-direction mode:** Draw only upload or download speed.
+3. **Draw with Canvas:** Use `Canvas` and `Paint` to center the text in the bitmap.
+   - **Font size:** Adapt to the system status-bar size or provide a manual adjustment.
+   - **Color:** Use white/gray appropriate to the status-bar background, or adjust for the system's light/dark mode.
+4. **IconCompat / Pixel and Android 12+ considerations:**
+   - **Goal:** Display a monochrome speed icon that adapts to the status-bar background like other system icons.
+   - **Approach:** Generate an alpha-mask bitmap, use `Icon.createWithBitmap(bitmap)` or `IconCompat`, and use tinting or the system's small-icon tinting behavior.
+   - **Fallback considered in the original design:** If automatic tinting produces incorrect output, such as a solid white square, use a static/transparent small icon and put the speed display in the large icon.
+5. **Notification builder:**
+   - Prefer an alpha-mask bitmap for the small icon where supported.
+   - Verify readability on real devices against light, dark and wallpaper-derived backgrounds.
 
-### 3.1 窗口类型
+## 3. Floating window
 
-- 使用 `TYPE_APPLICATION_OVERLAY`。
-- 必须先申请 `SYSTEM_ALERT_WINDOW` 权限。
+### 3.1 Window type
+
+- Use `TYPE_APPLICATION_OVERLAY`.
+- Obtain `SYSTEM_ALERT_WINDOW` permission before adding the overlay.
 
 ### 3.2 Compose in WindowManager
 
-- 使用 `ComposeView` 作为 WindowManager 的 View Root。
-  -设置 `LifecycleOwner` 和 `SavedStateRegistryOwner` 以确保 Compose 生命周期正常。
+Use a `ComposeView` as the WindowManager view root. Configure its `LifecycleOwner` and `SavedStateRegistryOwner` so the Compose lifecycle is valid.
+
+Illustrative code from the original design:
 
 ```kotlin
 val composeView = ComposeView(context).apply {
@@ -70,7 +64,7 @@ val composeView = ComposeView(context).apply {
 windowManager.addView(composeView, params)
 ```
 
-### 3.3 交互
+### 3.3 Interaction
 
-- **触摸穿透**: 默认情况下悬浮窗应捕获 Touch 事件以支持拖拽。
-- **位置记忆**: 每次拖拽结束 (Drag End)，记录当前 (x, y) 坐标到 DataStore，下次启动时恢复。
+- **Touch handling:** Capture touch events while the window is movable to support dragging; pass-through behavior depends on the window's interaction/lock state.
+- **Position persistence:** Save the current `(x, y)` coordinates to DataStore at the end of a drag, and restore them the next time the window starts.
