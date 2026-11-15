@@ -42,7 +42,7 @@ class NotificationHelper(private val context: Context) {
                 context.getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Shows real-time network speed in status bar"
+                description = context.getString(R.string.notification_channel_description)
                 setShowBadge(false)
                 setGroup(CHANNEL_ID)
                 setSound(null, null)

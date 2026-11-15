@@ -133,10 +133,10 @@ class MainActivity : ComponentActivity() {
             val targetUrl = info.apkDownloadUrl ?: info.htmlUrl
             AlertDialog(
                 onDismissRequest = { viewModel.clearUpdateDialog() },
-                title = { Text("Update Available (v${info.versionName})") },
+                title = { Text(stringResource(R.string.update_available_title, info.versionName)) },
                 text = {
                     Column {
-                        Text("Version ${info.versionName} is now available on GitHub.")
+                        Text(stringResource(R.string.update_available_message, info.versionName))
                         if (info.releaseNotes.isNotBlank()) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
@@ -153,14 +153,14 @@ class MainActivity : ComponentActivity() {
                         context.startActivity(intent)
                         viewModel.clearUpdateDialog()
                     }) {
-                        Text(if (info.apkDownloadUrl != null) "Download APK" else "Update")
+                        Text(stringResource(if (info.apkDownloadUrl != null) R.string.action_download_apk else R.string.action_update))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = {
                         viewModel.skipUpdate(info.versionName)
                     }) {
-                        Text("Skip")
+                        Text(stringResource(R.string.action_skip_version))
                     }
                 }
             )

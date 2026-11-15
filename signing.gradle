@@ -29,6 +29,12 @@ if (!configured) {
 }
 
 if (!configured) {
-    // Release signing must be supplied explicitly; debug builds remain available.
     android.buildTypes.release.signingConfig = null
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.allTasks.any { task ->
+            task.project == project && task.name.toLowerCase(java.util.Locale.ROOT).contains('release')
+        }) {
+            throw new GradleException('Release builds require a persistent signing key. Configure SIGN_KEY_STORE_FILE, SIGN_KEY_STORE_PASSWORD, SIGN_KEY_ALIAS and SIGN_KEY_PASSWORD.')
+        }
+    }
 }

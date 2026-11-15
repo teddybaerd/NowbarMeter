@@ -50,14 +50,14 @@ android {
         applicationId = packageName
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 4
+        versionCode = 5
         versionName = libs.versions.app.version.get()
     }
     flavorDimensions += "identity"
     productFlavors {
         create("standard") {
             dimension = "identity"
-            resValue("string", "app_name", "Nowbar Meter Test")
+            resValue("string", "app_name", "Nowbar Meter")
         }
         create("compat") {
             dimension = "identity"
