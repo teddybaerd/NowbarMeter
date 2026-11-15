@@ -40,7 +40,11 @@ bash gradlew :app:assembleStandardDebug :app:lintStandardDebug
 
 The CI artifact is a debug test build, not the production signing identity.
 
-For a signed release, configure the repository secrets `NOWBAR_KEYSTORE_BASE64`, `NOWBAR_STORE_PASSWORD`, `NOWBAR_KEY_ALIAS` and `NOWBAR_KEY_PASSWORD`, then use the manually triggered release workflow to build an APK without publishing, or a `v1.4.0` tag on `master` to publish. Release builds refuse to run without signing configuration. The expected public signing certificate is in `signing/release-certificate.pem`; the release workflow checks its SHA-256 fingerprint. Back up the key separately; never regenerate it for an update and never commit it or its passwords.
+For signed builds, the `Signed APK` workflow runs only on `master`. It first builds and lints the unsigned APK without secrets. A separate job in the `release-signing` environment downloads that artifact, verifies its checksum, and signs it without checking out or running project source. Configure `NOWBAR_KEYSTORE_BASE64`, `NOWBAR_STORE_PASSWORD`, `NOWBAR_KEY_ALIAS` and `NOWBAR_KEY_PASSWORD` as environment secrets, and restrict that environment to `master`.
+
+The public signing certificate is in `signing/release-certificate.pem`; both signing and publication check its SHA-256 fingerprint. Back up the private key separately; never regenerate it for an update and never commit it or its passwords.
+
+After testing the signed APK, manually run `Publish verified signed release` with the version, successful signing run ID, and exact source commit. This workflow has no access to the signing environment. It verifies the artifact, APK signature, package, version and checksums before publishing the same APK. Building or signing alone does not publish a release.
 
 ## Credits and license
 

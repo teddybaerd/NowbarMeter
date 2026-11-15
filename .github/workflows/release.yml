@@ -23,21 +23,8 @@ jobs:
         run: python3 tools/check_translations.py
       - name: Build and lint standard test APK
         run: bash gradlew :app:assembleStandardDebug :app:lintStandardDebug --no-daemon
-      - name: Verify minified release build with a disposable CI key
-        shell: bash
-        run: |
-          set -eu
-          umask 077
-          export SIGN_KEY_STORE_FILE="$RUNNER_TEMP/nowbar-ci.jks"
-          export SIGN_KEY_STORE_PASSWORD=ci-validation-only
-          export SIGN_KEY_ALIAS=ci-validation
-          export SIGN_KEY_PASSWORD=ci-validation-only
-          keytool -genkeypair -keystore "$SIGN_KEY_STORE_FILE" -alias "$SIGN_KEY_ALIAS" \
-            -keyalg RSA -keysize 2048 -validity 2 -storepass:env SIGN_KEY_STORE_PASSWORD \
-            -keypass:env SIGN_KEY_PASSWORD -dname "CN=Disposable CI validation"
-          trap 'rm -f "$SIGN_KEY_STORE_FILE"' EXIT
-          bash gradlew :app:assembleStandardRelease :app:lintStandardRelease --no-daemon
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose app/build/outputs/apk/standard/release/app-standard-release.apk
+      - name: Build and lint unsigned release APK
+        run: bash gradlew :app:assembleStandardRelease :app:lintStandardRelease --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:

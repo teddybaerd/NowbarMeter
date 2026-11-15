@@ -80,9 +80,6 @@ android {
             excludes += "DebugProbesKt.bin"
         }
     }
-    signingConfigs {
-        create("sign")
-    }
     buildTypes {
         debug {
             isMinifyEnabled = false
@@ -95,7 +92,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("sign")
         }
     }
     compileOptions {
@@ -137,5 +133,3 @@ dependencies {
     implementation(libs.zhanghai.preference)
     implementation(libs.skydoves.colorpicker)
 }
-
-apply(from = rootProject.file("signing.gradle"))
