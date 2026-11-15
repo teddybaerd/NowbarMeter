@@ -40,7 +40,7 @@ bash gradlew :app:assembleStandardDebug :app:lintStandardDebug
 
 The CI artifact is a debug test build, not the production signing identity.
 
-For a signed release, configure the repository secrets `NOWBAR_KEYSTORE_BASE64`, `NOWBAR_STORE_PASSWORD`, `NOWBAR_KEY_ALIAS` and `NOWBAR_KEY_PASSWORD`, then use the manually triggered release workflow to build an APK without publishing, or a `v1.4.0` tag on `master` to publish. Release builds refuse to run without signing configuration. Back up the key separately; never regenerate it for an update and never commit it or its passwords.
+For a signed release, configure the repository secrets `NOWBAR_KEYSTORE_BASE64`, `NOWBAR_STORE_PASSWORD`, `NOWBAR_KEY_ALIAS` and `NOWBAR_KEY_PASSWORD`, then use the manually triggered release workflow to build an APK without publishing, or a `v1.4.0` tag on `master` to publish. Release builds refuse to run without signing configuration. The expected public signing certificate is in `signing/release-certificate.pem`; the release workflow checks its SHA-256 fingerprint. Back up the key separately; never regenerate it for an update and never commit it or its passwords.
 
 ## Credits and license
 

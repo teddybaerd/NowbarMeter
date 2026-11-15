@@ -60,7 +60,11 @@ jobs:
         shell: bash
         run: |
           APK=app/build/outputs/apk/standard/release/app-standard-release.apk
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK"
+          VERIFY_OUTPUT=$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK")
+          printf '%s\n' "$VERIFY_OUTPUT"
+          EXPECTED=0f65afdc3a15ba9ff9cf196a05418484481737530d8562015814a6fca5978fdf
+          ACTUAL=$(printf '%s\n' "$VERIFY_OUTPUT" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+          test "$ACTUAL" = "$EXPECTED"
           mkdir -p release-assets
           cp "$APK" "release-assets/NowbarMeter-v${RELEASE_VERSION}-standard.apk"
           cd release-assets
