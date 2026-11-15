@@ -1,8 +1,24 @@
 # Nowbar Meter
 
+<p align="center">
+  <img src="app/src/main/ic_launcher-playstore.png" width="200" alt="Nowbar Meter Logo"/>
+</p>
+
 A network speed monitor for Android, with Samsung Now Bar support, status-bar notification and a floating window.
 
 This continuation preserves realMoai's NowbarMeter v1.3 via [joelsubash2000's fork](https://github.com/joelsubash2000/NowbarMeter). It uses its own application ID, `de.teddybaerd.nowbarmeter`.
+
+## Screenshots
+
+<div align="center">
+  <img src="docs/FULL_SCREEN_1.jpg" width="45%" style="margin-right: 2%;" alt="Home Screen"/>
+  <img src="docs/FULL_SCREEN_2.jpg" width="45%" alt="Settings Screen"/>
+</div>
+<br>
+<div align="center">
+  <img src="docs/SLIM_STATUS_BAR_CHIP.jpg" width="95%" alt="Now Bar Integration"/>
+  <p><em>Native integration directly into the One UI status bar.</em></p>
+</div>
 
 ## Download and installation
 
