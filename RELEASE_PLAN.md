@@ -5,10 +5,12 @@
 - [x] Complete German resources, including formerly hardcoded update UI and notification-channel description.
 - [x] Validate translation completeness and formatting placeholders.
 - [x] Update README, attribution and concise release notes.
-- [ ] Verify final release build and German layout on a physical device.
+- [x] Verify final release build and German layout on a physical device: maintainer confirmed successful installation and operation.
 - [x] Create and independently back up a dedicated persistent release signing key.
 - [x] Configure environment-scoped signing secrets with build, signing and publication separated.
 - [x] Build and verify the production-signed standard APK (run 43744818983).
-- [ ] Publish the first signed release after the final checks pass.
+- [x] Publish the first signed release after final checks: v1.4.0, publication run 43750998804.
 
-German translation requested on 2026-11-15. Earlier device tests used the debug standard variant before German translation.
+The published APK is byte-for-byte identical to the device-tested APK: SHA-256 d80616e3bfad3714233e3e9659a5a87cb7a88f2535efed2df7f5fbf7f81dfbe2.
+
+German translation requested and first continuation release published on 2026-11-15.
