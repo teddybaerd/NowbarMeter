@@ -83,8 +83,13 @@ jobs:
           expected = {apk_name, 'SHA256SUMS.txt', 'build-info.json', 'signing-certificate-sha256.txt'}
           destination = Path('verified'); destination.mkdir()
           with zipfile.ZipFile('signed.zip') as archive:
-              assert len(archive.infolist()) == 4 and set(archive.namelist()) == expected
+              names = set(archive.namelist())
+              # Early signing runs also emitted an optional v4 sidecar. It is not needed for sideloading.
+              assert len(archive.infolist()) == len(names)
+              assert names in (expected, expected | {apk_name + '.idsig'})
               for item in archive.infolist():
+                  if item.filename not in expected:
+                      continue
                   assert 0 < item.file_size <= (100 * 1024 * 1024 if item.filename == apk_name else 65536)
                   (destination / item.filename).write_bytes(archive.read(item))
           info = json.loads((destination / 'build-info.json').read_text())

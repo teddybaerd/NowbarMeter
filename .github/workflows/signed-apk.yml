@@ -100,7 +100,7 @@ jobs:
           APK="dist/NowbarMeter-v${RELEASE_VERSION}-standard.apk"
           "$TOOLS/zipalign" -f -p 4 unsigned/app-standard-release-unsigned.apk "$KEY_DIR/aligned.apk"
           "$TOOLS/apksigner" sign --ks "$KEY_DIR/release.jks" --ks-key-alias "$KEY_ALIAS" \
-            --ks-pass env:STORE_PASSWORD --key-pass env:KEY_PASSWORD --out "$APK" "$KEY_DIR/aligned.apk"
+            --ks-pass env:STORE_PASSWORD --key-pass env:KEY_PASSWORD --v4-signing-enabled false --out "$APK" "$KEY_DIR/aligned.apk"
           "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > signature.txt
           "$TOOLS/aapt" dump badging "$APK" > badging.txt
           python3 - <<'PY'
@@ -126,6 +126,10 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: NowbarMeter-${{ needs.build.outputs.version }}-signed
-          path: dist/
+          path: |
+            dist/*.apk
+            dist/SHA256SUMS.txt
+            dist/build-info.json
+            dist/signing-certificate-sha256.txt
           retention-days: 90
           if-no-files-found: error
