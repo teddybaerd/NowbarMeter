@@ -10,6 +10,14 @@ This continuation preserves realMoai's NowbarMeter v1.3 via [joelsubash2000's fo
 
 ## Screenshots
 
+### Current app — German interface
+
+<p align="center">
+  <img src="docs/APP_HOME_DE.jpg" width="45%" alt="Nowbar Meter 1.4.0 home screen with German interface"/>
+</p>
+
+### Original screenshots
+
 <div align="center">
   <img src="docs/FULL_SCREEN_1.jpg" width="45%" style="margin-right: 2%;" alt="Home Screen"/>
   <img src="docs/FULL_SCREEN_2.jpg" width="45%" alt="Settings Screen"/>
