@@ -1,5 +1,8 @@
 name: Publish verified signed release
 on:
+  push:
+    branches: [master]
+    paths: ['release-request.json']
   workflow_dispatch:
     inputs:
       version:
@@ -38,6 +41,22 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - name: Resolve versioned release request
+        if: github.event_name == 'push'
+        run: |
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          request = json.loads(Path('release-request.json').read_text())
+          assert set(request) == {'version', 'signed_run_id', 'source_commit'}
+          assert all(isinstance(v, str) for v in request.values())
+          assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', request['version'])
+          assert re.fullmatch(r'[0-9]+', request['signed_run_id'])
+          assert re.fullmatch(r'[0-9a-f]{40}', request['source_commit'])
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              for key, variable in [('version', 'RELEASE_VERSION'), ('signed_run_id', 'SIGNED_RUN_ID'), ('source_commit', 'SOURCE_COMMIT')]:
+                  env.write(variable + '=' + request[key] + '\n')
+          PY
       - name: Validate build identity and download signed artifact
         shell: bash
         run: |
