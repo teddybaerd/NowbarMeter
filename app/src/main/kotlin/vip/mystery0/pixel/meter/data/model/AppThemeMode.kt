@@ -1,4 +1,4 @@
-package com.kakao.taxi.data.model
+package de.teddybaerd.nowbarmeter.data.model
 
 enum class AppThemeMode(val value: Int) {
     Dynamic(0),

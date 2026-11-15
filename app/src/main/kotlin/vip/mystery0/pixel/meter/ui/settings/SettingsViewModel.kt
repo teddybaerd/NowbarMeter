@@ -1,4 +1,4 @@
-package com.kakao.taxi.ui.settings
+package de.teddybaerd.nowbarmeter.ui.settings
 
 import android.Manifest
 import android.app.Application
@@ -9,8 +9,8 @@ import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.kakao.taxi.data.repository.NetworkRepository
-import com.kakao.taxi.ui.theme.CustomFontManager
+import de.teddybaerd.nowbarmeter.data.repository.NetworkRepository
+import de.teddybaerd.nowbarmeter.ui.theme.CustomFontManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch

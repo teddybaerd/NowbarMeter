@@ -1,4 +1,4 @@
-package com.kakao.taxi.receiver
+package de.teddybaerd.nowbarmeter.receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -6,8 +6,8 @@ import android.content.Intent
 import android.util.Log
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import com.kakao.taxi.data.repository.NetworkRepository
-import com.kakao.taxi.service.NetworkMonitorService
+import de.teddybaerd.nowbarmeter.data.repository.NetworkRepository
+import de.teddybaerd.nowbarmeter.service.NetworkMonitorService
 
 class BootReceiver : BroadcastReceiver(), KoinComponent {
     companion object {

@@ -1,4 +1,4 @@
-package com.kakao.taxi.permissions
+package de.teddybaerd.nowbarmeter.permissions
 
 enum class ServiceStartCheckResult {
     Ready,

@@ -1,3 +1,23 @@
+# Continuation and test status
+
+This fork preserves realMoai's NowbarMeter v1.3, via joelsubash2000's fork, and the original Pixel Meter attribution and Apache-2.0 license.
+
+The first test uses the independent application ID `de.teddybaerd.nowbarmeter` and can coexist with the original app. Samsung Now Bar support with this ID is unverified. Stop the original monitor before testing to distinguish notifications.
+
+Two flavors share the same source: `standard` (own identity) and `compat` (legacy `com.kakao.taxi` identity). Compat requires uninstalling an original app signed with a different key. Only standard is built by the test workflow.
+
+Modified files in the continuation change package/namespace identity, update links, build variants and release automation. No APK from this fork has yet been validated on a physical device.
+
+## First device test
+
+Install the standard test artifact. Grant notification permission, enable monitoring and Now Bar, and check status bar, expanded card and lockscreen. Check with screen off, after reboot, and with VPN enabled. Record Android/One UI versions and Bitdefender's result. Compare against the original v1.3 with only one monitor running at a time.
+
+## Signing
+
+Release builds require a persistent signing key configured through repository secrets. Never generate a replacement key for every build. Debug artifacts are disposable tests; their signing identity is not a promised upgrade path.
+
+---
+
 # Nowbar Meter
 
 <p align="center">
@@ -9,10 +29,10 @@
 </p>
 
 <p align="center">
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/realMoai/NowbarMeter" alt="License"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/teddybaerd/NowbarMeter" alt="License"></a>
     <img src="https://img.shields.io/badge/Version-1.3-green" alt="Version 1.3">
     <img src="https://img.shields.io/badge/Forked_From-Pixel_Meter-blue" alt="Forked from Pixel Meter">
-    <img src="https://img.shields.io/github/downloads/realMoai/NowbarMeter/total" alt="Downloads">
+    <img src="https://img.shields.io/github/downloads/teddybaerd/NowbarMeter/total" alt="Downloads">
     <a href="https://buymeacoffee.com/nowbarmeter"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=flat&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me A Coffee"></a>
 </p>
 
@@ -40,7 +60,7 @@ It retains all the features of the original app, including intelligent VPN traff
 
 Since this app modifies system-level UI elements, it is not available on the Google Play Store.
 
-1. Go to the [Releases Page](https://github.com/realMoai/NowbarMeter/releases/latest).
+1. Go to the [Releases Page](https://github.com/teddybaerd/NowbarMeter/releases/latest).
 2. Download the latest `NowbarMeter-vX.X.apk` file under the **Assets** dropdown.
 3. Open the APK file to install it.
 

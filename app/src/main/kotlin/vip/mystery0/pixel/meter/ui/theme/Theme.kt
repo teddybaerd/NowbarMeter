@@ -1,4 +1,4 @@
-package com.kakao.taxi.ui.theme
+package de.teddybaerd.nowbarmeter.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
-import com.kakao.taxi.data.model.AppThemeMode
+import de.teddybaerd.nowbarmeter.data.model.AppThemeMode
 
 private val FixedLightColorScheme = lightColorScheme(
     primary = Color(0xFF006A66),

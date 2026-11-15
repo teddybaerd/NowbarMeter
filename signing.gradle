@@ -29,5 +29,6 @@ if (!configured) {
 }
 
 if (!configured) {
-    android.buildTypes.release.signingConfig = android.signingConfigs.getByName("debug")
+    // Release signing must be supplied explicitly; debug builds remain available.
+    android.buildTypes.release.signingConfig = null
 }

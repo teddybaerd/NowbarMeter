@@ -1,4 +1,4 @@
-package com.kakao.taxi.service.tile
+package de.teddybaerd.nowbarmeter.service.tile
 
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
@@ -7,8 +7,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import com.kakao.taxi.R
-import com.kakao.taxi.data.repository.NetworkRepository
+import de.teddybaerd.nowbarmeter.R
+import de.teddybaerd.nowbarmeter.data.repository.NetworkRepository
 
 class OverlayTileService : TileService() {
     private val networkRepository: NetworkRepository by inject()

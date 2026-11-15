@@ -1,4 +1,4 @@
-package com.kakao.taxi
+package de.teddybaerd.nowbarmeter
 
 import android.Manifest
 import android.content.Context
@@ -63,13 +63,13 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.kakao.taxi.data.model.AppThemeMode
-import com.kakao.taxi.data.source.NetSpeedData
-import com.kakao.taxi.format.SpeedFormatter
-import com.kakao.taxi.ui.MainViewModel
-import com.kakao.taxi.ui.settings.SettingsActivity
-import com.kakao.taxi.ui.theme.CustomFontManager
-import com.kakao.taxi.ui.theme.PixelPulseTheme
+import de.teddybaerd.nowbarmeter.data.model.AppThemeMode
+import de.teddybaerd.nowbarmeter.data.source.NetSpeedData
+import de.teddybaerd.nowbarmeter.format.SpeedFormatter
+import de.teddybaerd.nowbarmeter.ui.MainViewModel
+import de.teddybaerd.nowbarmeter.ui.settings.SettingsActivity
+import de.teddybaerd.nowbarmeter.ui.theme.CustomFontManager
+import de.teddybaerd.nowbarmeter.ui.theme.PixelPulseTheme
 
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainViewModel>()

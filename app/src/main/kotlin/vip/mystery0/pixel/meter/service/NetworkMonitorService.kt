@@ -1,4 +1,4 @@
-package com.kakao.taxi.service
+package de.teddybaerd.nowbarmeter.service
 
 import android.app.KeyguardManager
 import android.app.NotificationManager
@@ -12,9 +12,9 @@ import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
-import com.kakao.taxi.data.repository.NetworkRepository
-import com.kakao.taxi.data.source.NetSpeedData
-import com.kakao.taxi.ui.overlay.OverlayWindow
+import de.teddybaerd.nowbarmeter.data.repository.NetworkRepository
+import de.teddybaerd.nowbarmeter.data.source.NetSpeedData
+import de.teddybaerd.nowbarmeter.ui.overlay.OverlayWindow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

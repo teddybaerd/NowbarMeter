@@ -1,4 +1,4 @@
-package com.kakao.taxi.di
+package de.teddybaerd.nowbarmeter.di
 
 import android.app.NotificationManager
 import android.content.Context
@@ -6,12 +6,12 @@ import android.net.ConnectivityManager
 import android.os.PowerManager
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
-import com.kakao.taxi.data.repository.DataStoreRepository
-import com.kakao.taxi.data.repository.NetworkRepository
-import com.kakao.taxi.data.repository.dataStore
-import com.kakao.taxi.data.source.impl.SpeedDataSource
-import com.kakao.taxi.service.NotificationHelper
-import com.kakao.taxi.ui.overlay.OverlayWindow
+import de.teddybaerd.nowbarmeter.data.repository.DataStoreRepository
+import de.teddybaerd.nowbarmeter.data.repository.NetworkRepository
+import de.teddybaerd.nowbarmeter.data.repository.dataStore
+import de.teddybaerd.nowbarmeter.data.source.impl.SpeedDataSource
+import de.teddybaerd.nowbarmeter.service.NotificationHelper
+import de.teddybaerd.nowbarmeter.ui.overlay.OverlayWindow
 
 val appModule = module {
     single { androidContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager }

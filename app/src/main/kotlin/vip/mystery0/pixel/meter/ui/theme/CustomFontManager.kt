@@ -1,4 +1,4 @@
-package com.kakao.taxi.ui.theme
+package de.teddybaerd.nowbarmeter.ui.theme
 
 import android.content.Context
 import android.graphics.Typeface
