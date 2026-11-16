@@ -23,6 +23,9 @@ German translation requested and first continuation release published on 2026-11
 - [x] Change notices on modified inherited source/configuration files, retaining original attribution.
 - [x] Full Apache 2.0 text and generated dependency licenses/notices available offline in About.
 - [x] Automated tests for preference loading and repeated automatic checks; APK content verification in CI.
-- [ ] Build/lint checks pass and packaged licenses are reviewed.
-- [ ] Production-signed APK tested by the maintainer as an update over 1.4.0.
-- [ ] Publish stable after the device test.
+- [x] Build/lint checks pass and packaged licenses are reviewed (verification run 43804047341).
+- [x] Production-signed APK tested by the maintainer as an update over 1.4.0; all features confirmed working on 2026-11-16.
+
+Stable publication is requested through `release-request.json`, using signed run 43804802601 and source commit `4d09edae04b7c1c312a3d19cd5d0eea4a4a4be16`. The workflow verifies the existing artifact rather than rebuilding it.
+
+Device-tested APK SHA-256: `9949ff2d537b47c751c6969ded196c71df0db6d02283366e005c3e0397e9abd5`.
