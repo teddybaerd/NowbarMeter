@@ -1,3 +1,4 @@
+// Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance.
 package de.teddybaerd.nowbarmeter
 
 import android.Manifest
@@ -122,49 +123,8 @@ class MainActivity : ComponentActivity() {
             CustomFontManager.getComposeFontFamily(fontPreset, customFontPath)
         }
 
-        val updateInfo by viewModel.updateAvailable.collectAsState()
-        val skippedVersion by viewModel.skippedUpdateVersion.collectAsState(initial = "")
-
-        LaunchedEffect(skippedVersion) {
-            viewModel.checkForUpdates(BuildConfig.VERSION_NAME, skippedVersion)
-        }
-
-        updateInfo?.let { info ->
-            val targetUrl = info.apkDownloadUrl ?: info.htmlUrl
-            AlertDialog(
-                onDismissRequest = { viewModel.clearUpdateDialog() },
-                title = { Text(stringResource(R.string.update_available_title, info.versionName)) },
-                text = {
-                    Column {
-                        Text(stringResource(R.string.update_available_message, info.versionName))
-                        if (info.releaseNotes.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = info.releaseNotes.take(400),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, targetUrl.toUri())
-                        context.startActivity(intent)
-                        viewModel.clearUpdateDialog()
-                    }) {
-                        Text(stringResource(if (info.apkDownloadUrl != null) R.string.action_download_apk else R.string.action_update))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
-                        viewModel.skipUpdate(info.versionName)
-                    }) {
-                        Text(stringResource(R.string.action_skip_version))
-                    }
-                }
-            )
-        }
+        LaunchedEffect(Unit) { viewModel.checkAutomatically() }
+        de.teddybaerd.nowbarmeter.ui.UpdateDialog(viewModel)
 
         val powerManager = remember { context.getSystemService(Context.POWER_SERVICE) as PowerManager }
         var isIgnoringBattery by remember {

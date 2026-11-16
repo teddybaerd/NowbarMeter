@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance. -->
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -15,6 +17,8 @@
 
     <application
         android:name="de.teddybaerd.nowbarmeter.MainApplication"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -39,6 +43,11 @@
             android:name="de.teddybaerd.nowbarmeter.ui.settings.SettingsActivity"
             android:exported="false"
             android:label="@string/title_settings"
+            android:theme="@style/Theme.NowbarMeter" />
+
+        <activity
+            android:name="de.teddybaerd.nowbarmeter.ui.settings.LicensesActivity"
+            android:exported="false"
             android:theme="@style/Theme.NowbarMeter" />
 
         <service

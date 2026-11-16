@@ -1,7 +1,11 @@
+import java.util.zip.ZipInputStream
+
+// Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance.
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.mikepenz.aboutlibraries.plugin") version "12.2.4"
 }
 
 val packageName = "de.teddybaerd.nowbarmeter"
@@ -50,7 +54,7 @@ android {
         applicationId = packageName
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 5
+        versionCode = 6
         versionName = libs.versions.app.version.get()
     }
     flavorDimensions += "identity"
@@ -115,6 +119,7 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
@@ -133,3 +138,45 @@ dependencies {
     implementation(libs.zhanghai.preference)
     implementation(libs.skydoves.colorpicker)
 }
+
+// Build-time metadata only: no AboutLibraries runtime or network code in the APK.
+aboutLibraries {
+    collect {
+        configPath = file("license-config")
+        fetchRemoteLicense = false
+        fetchRemoteFunding = false
+    }
+}
+
+// Retain actual notices shipped in resolved AARs/JARs, including nested classes.jar.
+val noticeAssets = layout.buildDirectory.dir("generated/noticeAssets")
+val collectThirdPartyNotices by tasks.registering {
+    val artifacts = configurations.named("standardReleaseRuntimeClasspath")
+    inputs.files(artifacts)
+    outputs.dir(noticeAssets)
+    doLast {
+        val notices = sortedMapOf<String, MutableSet<String>>()
+        fun collectZip(bytes: ByteArray, source: String, nested: Boolean = false) {
+            ZipInputStream(bytes.inputStream()).use { zip ->
+                while (true) {
+                    val entry = zip.nextEntry ?: break
+                    val name = entry.name.substringAfterLast('/').uppercase()
+                    if (!entry.isDirectory && (name.startsWith("LICENSE") || name.startsWith("NOTICE") || name in listOf("AL2.0", "LGPL2.1", "COPYING", "COPYRIGHT"))) {
+                        val text = zip.readBytes().toString(Charsets.UTF_8).trim()
+                        notices.getOrPut(text) { sortedSetOf() }.add("$source / ${entry.name}")
+                    } else if (!nested && entry.name == "classes.jar") {
+                        collectZip(zip.readBytes(), "$source / classes.jar", true)
+                    }
+                }
+            }
+        }
+        artifacts.get().resolvedConfiguration.resolvedArtifacts.sortedBy { it.moduleVersion.id.toString() }.forEach {
+            if (it.file.extension in listOf("aar", "jar")) collectZip(it.file.readBytes(), it.moduleVersion.id.toString())
+        }
+        val output = noticeAssets.get().file("THIRD_PARTY_NOTICES.txt").asFile
+        output.parentFile.mkdirs()
+        output.writeText(notices.entries.joinToString("\n\n----------------------------------------\n\n") { (text, sources) -> sources.joinToString("\n") + "\n\n" + text } + "\n")
+    }
+}
+android.sourceSets.getByName("main").assets.srcDir(noticeAssets)
+tasks.named("preBuild") { dependsOn(collectThirdPartyNotices) }

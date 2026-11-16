@@ -1,8 +1,9 @@
+# Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance.
 [versions]
 agp = "8.13.2"
 kotlin = "2.3.10"
 
-app-version = "1.4.0"
+app-version = "1.4.1"
 android-compileSdk = "36"
 android-minSdk = "31"
 android-targetSdk = "36"

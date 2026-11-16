@@ -1,3 +1,4 @@
+// Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance.
 package de.teddybaerd.nowbarmeter.data.repository
 
 import android.content.Context
@@ -90,6 +91,7 @@ class DataStoreRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_BLANK_NOTIFICATION = booleanPreferencesKey("key_blank_notification")
         val KEY_NOTIFICATION_TRANSPARENT_ICON =
             booleanPreferencesKey("key_notification_transparent_icon")
+        val KEY_AUTO_UPDATE_CHECK = booleanPreferencesKey("key_auto_update_check")
         val KEY_SKIPPED_UPDATE_VERSION = stringPreferencesKey("key_skipped_update_version")
     }
 
@@ -155,6 +157,12 @@ class DataStoreRepository(private val dataStore: DataStore<Preferences>) {
     val isCompactSpeedTextEnabled: Flow<Boolean> = dataStore.data.map { it[KEY_COMPACT_SPEED_TEXT] ?: true }
     val isBlankNotificationEnabled: Flow<Boolean> = dataStore.data.map { it[KEY_BLANK_NOTIFICATION] ?: false }
     val isNotificationTransparentIconEnabled: Flow<Boolean> = dataStore.data.map { it[KEY_NOTIFICATION_TRANSPARENT_ICON] ?: false }
+    val automaticUpdateChecks: Flow<Boolean> = dataStore.data.map { it[KEY_AUTO_UPDATE_CHECK] ?: true }
+
+    suspend fun setAutomaticUpdateChecks(enabled: Boolean) {
+        dataStore.edit { it[KEY_AUTO_UPDATE_CHECK] = enabled }
+    }
+
     val skippedUpdateVersion: Flow<String> = dataStore.data.map { it[KEY_SKIPPED_UPDATE_VERSION] ?: "" }
 
     suspend fun setLiveUpdateEnabled(enabled: Boolean) {

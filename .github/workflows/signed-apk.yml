@@ -28,7 +28,8 @@ jobs:
       - name: Build and test unsigned release
         run: |
           python3 tools/check_translations.py
-          bash gradlew :app:assembleStandardRelease :app:lintStandardRelease --no-daemon
+          bash gradlew :app:testStandardDebugUnitTest :app:assembleStandardRelease :app:lintStandardRelease --no-daemon
+          python3 tools/check_release_contents.py app/build/outputs/apk/standard/release/app-standard-release-unsigned.apk "$ANDROID_HOME/build-tools/36.0.0/aapt"
       - name: Record unsigned artifact identity
         id: metadata
         run: |

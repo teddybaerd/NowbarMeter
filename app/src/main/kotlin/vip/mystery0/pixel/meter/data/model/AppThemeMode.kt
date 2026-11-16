@@ -1,3 +1,4 @@
+// Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance.
 package de.teddybaerd.nowbarmeter.data.model
 
 enum class AppThemeMode(val value: Int) {

@@ -1,3 +1,5 @@
+
+<!-- Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance. -->
 <resources>
     <string name="title_configuration">Configuration</string>
     <string name="title_monitor_control">Monitor Control</string>
@@ -182,4 +184,17 @@
     <string name="action_download_apk">Download APK</string>
     <string name="action_update">Update</string>
     <string name="action_skip_version">Skip version</string>
+    <string name="settings_auto_updates">Automatic update checks</string>
+    <string name="settings_auto_updates_desc">Check GitHub when opening the app.</string>
+    <string name="settings_check_updates">Check for updates now</string>
+    <string name="settings_check_updates_desc">Connect to GitHub once to check for a new version.</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_current">You are up to date.</string>
+    <string name="update_found">A newer version is available.</string>
+    <string name="update_failed">Could not check for updates. Try again later.</string>
+    <string name="settings_licenses">Open-source licenses</string>
+    <string name="settings_licenses_desc">Licenses and notices for the components used</string>
+    <string name="licenses_app">Nowbar Meter is based on Pixel Meter / NowbarMeter. Continued by teddybaerd with assistance from ChatGPT/Codex. Licensed under the Apache License 2.0.</string>
+    <string name="licenses_components">Components</string>
+    <string name="licenses_notices">Third-party notices</string>
 </resources>

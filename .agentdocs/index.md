@@ -19,7 +19,11 @@ The linked documents record the inherited design and requirements. Some details 
 
 - [Design system](ui/design-system.md): Material You theme, notification icon rendering and floating-window interactions.
 
-### 4. Workflows
+### 4. Privacy and licensing
+
+The current privacy controls, cloud-backup policy and offline license information are described in the [README](../README.md#privacy-and-updates). Build-time license metadata and packaged notices are checked against the release APK by `tools/check_release_contents.py`.
+
+### 5. Workflows
 
 No workflow documents have been added to this directory yet. The current build, signing and publication workflows are documented in the repository README.
 

@@ -1,3 +1,4 @@
+// Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance.
 package de.teddybaerd.nowbarmeter.data.repository
 
 import android.os.SystemClock
@@ -199,6 +200,10 @@ class NetworkRepository(
     private val _isNotificationTransparentIconEnabled = MutableStateFlow(false)
     val isNotificationTransparentIconEnabled: StateFlow<Boolean> =
         _isNotificationTransparentIconEnabled.asStateFlow()
+
+    val automaticUpdateChecks = dataStoreRepository.automaticUpdateChecks
+
+    suspend fun setAutomaticUpdateChecks(enabled: Boolean) = dataStoreRepository.setAutomaticUpdateChecks(enabled)
 
     val skippedUpdateVersion: Flow<String> = dataStoreRepository.skippedUpdateVersion
 
