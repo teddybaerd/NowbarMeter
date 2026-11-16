@@ -155,6 +155,14 @@ jobs:
           gh api "repos/$GH_REPO/commits/$SOURCE_COMMIT" --jq '.sha' | grep -Fx "$SOURCE_COMMIT"
           # Use release notes from the exact source revision that produced the APK.
           gh api "repos/$GH_REPO/contents/RELEASE_NOTES.md?ref=$SOURCE_COMMIT" --jq '.content' | base64 --decode > release-notes.md
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          notes = Path('release-notes.md').read_text()
+          assert notes.startswith('## Nowbar Meter ' + os.environ['RELEASE_VERSION'] + '\n')
+          # Publish only this version's notes, retaining the source history in the repo.
+          Path('release-notes.md').write_text(notes.split('\n## ', 1)[0].strip() + '\n')
+          PY
           if [[ -n "$DRAFT_RELEASE_ID" ]]; then
             [[ "$DRAFT_RELEASE_ID" =~ ^[0-9]+$ ]]
             echo "$DRAFT_RELEASE_ID" > draft-id
