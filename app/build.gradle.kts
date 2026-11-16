@@ -1,3 +1,5 @@
+import java.util.zip.ZipInputStream
+
 // Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance.
 plugins {
     alias(libs.plugins.android.application)
@@ -154,7 +156,7 @@ val collectThirdPartyNotices by tasks.registering {
     doLast {
         val notices = sortedSetOf<String>()
         fun collectZip(bytes: ByteArray, source: String, nested: Boolean = false) {
-            java.util.zip.ZipInputStream(bytes.inputStream()).use { zip ->
+            ZipInputStream(bytes.inputStream()).use { zip ->
                 while (true) {
                     val entry = zip.nextEntry ?: break
                     val name = entry.name.substringAfterLast('/').uppercase()

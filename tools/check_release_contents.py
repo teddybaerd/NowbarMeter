@@ -21,4 +21,9 @@ with zipfile.ZipFile(apk) as package:
 manifest = subprocess.check_output([aapt, "dump", "xmltree", apk, "AndroidManifest.xml"], text=True)
 assert re.search(r"android:allowBackup[^\n]*\(type 0x12\)0x0", manifest), "Cloud backup is not disabled"
 assert "dataExtractionRules" in manifest
+rules = subprocess.check_output([aapt, "dump", "xmltree", apk, "res/xml/data_extraction_rules.xml"], text=True)
+assert "E: cloud-backup" in rules
+expected_domains = {"root", "file", "database", "sharedpref", "external", "device_root", "device_file", "device_database", "device_sharedpref"}
+assert set(re.findall(r'A: domain="([^"]+)"', rules)) == expected_domains
+assert rules.count("E: exclude") == len(expected_domains)
 print(f"APK verified: cloud backup disabled; offline licenses for {len(report['libraries'])} dependencies.")

@@ -1,3 +1,4 @@
+// Adapted from the inherited MainActivity update dialog; modified by teddybaerd for reuse in settings (2026).
 package de.teddybaerd.nowbarmeter.ui
 
 import android.content.Intent
