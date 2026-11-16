@@ -1,3 +1,4 @@
+// Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance.
 package de.teddybaerd.nowbarmeter.ui
 
 import android.Manifest
@@ -16,6 +17,8 @@ import de.teddybaerd.nowbarmeter.data.repository.NetworkRepository
 import de.teddybaerd.nowbarmeter.permissions.DisplayPermissionState
 import de.teddybaerd.nowbarmeter.permissions.ServiceStartCheckResult
 import de.teddybaerd.nowbarmeter.service.NetworkMonitorService
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -71,19 +74,43 @@ class MainViewModel(
     private val _updateAvailable = MutableStateFlow<UpdateInfo?>(null)
     val updateAvailable = _updateAvailable.asStateFlow()
 
+    val automaticUpdateChecks = repository.automaticUpdateChecks
     val skippedUpdateVersion = repository.skippedUpdateVersion
+    private val automaticCheck = AutomaticUpdateCheck()
+    private val _updateStatus = MutableStateFlow<Int?>(null)
+    val updateStatus = _updateStatus.asStateFlow()
 
-    fun checkForUpdates(currentVersion: String, skippedVersion: String) {
+    fun setAutomaticUpdateChecks(enabled: Boolean) {
+        viewModelScope.launch { repository.setAutomaticUpdateChecks(enabled) }
+    }
+
+    fun checkAutomatically() {
+        viewModelScope.launch {
+            // Wait for persisted preferences: no optimistic default can trigger a request.
+            automaticCheck.run(enabled = { repository.automaticUpdateChecks.first() }) {
+                checkForUpdates(BuildConfig.VERSION_NAME, repository.skippedUpdateVersion.first())
+            }
+        }
+    }
+
+    fun checkManually() = checkForUpdates(BuildConfig.VERSION_NAME, "", manual = true)
+
+    private fun checkForUpdates(currentVersion: String, skippedVersion: String, manual: Boolean = false) {
+        if (_updateStatus.value == R.string.update_checking) return
+        _updateStatus.value = R.string.update_checking
         viewModelScope.launch(Dispatchers.IO) {
+            var connection: HttpURLConnection? = null
             try {
                 val url = URL("https://api.github.com/repos/teddybaerd/NowbarMeter/releases/latest")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.connectTimeout = 5000
-                connection.readTimeout = 5000
+                val activeConnection = url.openConnection() as HttpURLConnection
+                connection = activeConnection
+                activeConnection.requestMethod = "GET"
+                activeConnection.connectTimeout = 5000
+                activeConnection.readTimeout = 5000
 
-                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                    val response = connection.inputStream.bufferedReader().use { it.readText() }
+                check(activeConnection.responseCode == HttpURLConnection.HTTP_OK) { "Update server returned HTTP ${activeConnection.responseCode}" }
+                run {
+                    val response = activeConnection.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(response)
                     val tagName = json.getString("tag_name")
                     val htmlUrl = json.getString("html_url")
@@ -105,6 +132,7 @@ class MainViewModel(
 
                     val cleanedTag = tagName.removePrefix("v")
 
+                    _updateStatus.value = if (isNewerVersion(cleanedTag, currentVersion)) R.string.update_found else R.string.update_current
                     if (isNewerVersion(cleanedTag, currentVersion) && cleanedTag != skippedVersion) {
                         _updateAvailable.value = UpdateInfo(
                             versionName = cleanedTag,
@@ -114,8 +142,13 @@ class MainViewModel(
                         )
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
+                _updateStatus.value = if (manual) R.string.update_failed else null
                 Log.e(TAG, "checkForUpdates: failed to check for updates", e)
+            } finally {
+                connection?.disconnect()
             }
         }
     }

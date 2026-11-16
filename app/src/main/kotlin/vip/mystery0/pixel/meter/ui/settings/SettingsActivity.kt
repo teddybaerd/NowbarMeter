@@ -1,3 +1,4 @@
+// Modified by teddybaerd for the Nowbar Meter continuation (2026): independent app identity, localization, privacy controls and release maintenance.
 package de.teddybaerd.nowbarmeter.ui.settings
 
 import android.content.Intent
@@ -85,6 +86,7 @@ import java.util.Locale
 
 class SettingsActivity : ComponentActivity() {
     private val viewModel by viewModels<SettingsViewModel>()
+    private val updateViewModel by viewModels<de.teddybaerd.nowbarmeter.ui.MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -144,7 +146,7 @@ class SettingsActivity : ComponentActivity() {
                     item { NotificationSection(viewModel) }
                     item { OverlaySection(viewModel) }
                     item { BackgroundSection(viewModel) }
-                    item { AboutSection() }
+                    item { AboutSection(updateViewModel) }
                     item {
                         Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
                     }
@@ -1224,13 +1226,35 @@ fun NotificationSection(viewModel: SettingsViewModel) {
 }
 
 @Composable
-fun AboutSection() {
+fun AboutSection(updateViewModel: de.teddybaerd.nowbarmeter.ui.MainViewModel) {
+    val context = LocalContext.current
+    val automaticChecks by updateViewModel.automaticUpdateChecks.collectAsState(initial = null)
+    val updateStatus by updateViewModel.updateStatus.collectAsState()
+    de.teddybaerd.nowbarmeter.ui.UpdateDialog(updateViewModel)
     val view = LocalView.current
     val uriHandler = LocalUriHandler.current
     PreferenceCategory(title = { Text(stringResource(R.string.settings_category_about)) })
     Preference(
         title = { Text(stringResource(R.string.settings_app_version)) },
         summary = { Text(BuildConfig.VERSION_NAME) }
+    )
+    SwitchPreference(
+        value = automaticChecks == true,
+        enabled = automaticChecks != null,
+        onValueChange = { updateViewModel.setAutomaticUpdateChecks(it) },
+        title = { Text(stringResource(R.string.settings_auto_updates)) },
+        summary = { Text(stringResource(R.string.settings_auto_updates_desc)) }
+    )
+    Preference(
+        title = { Text(stringResource(R.string.settings_check_updates)) },
+        summary = { Text(stringResource(updateStatus ?: R.string.settings_check_updates_desc)) },
+        enabled = updateStatus != R.string.update_checking,
+        onClick = { updateViewModel.checkManually() }
+    )
+    Preference(
+        title = { Text(stringResource(R.string.settings_licenses)) },
+        summary = { Text(stringResource(R.string.settings_licenses_desc)) },
+        onClick = { context.startActivity(Intent(context, LicensesActivity::class.java)) }
     )
     Preference(
         title = { Text(stringResource(R.string.settings_github)) },

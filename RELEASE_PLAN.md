@@ -15,11 +15,14 @@ The published APK is byte-for-byte identical to the device-tested APK: SHA-256 d
 
 German translation requested and first continuation release published on 2026-11-15.
 
-## Next release: license notices
+## Update 1.4.1: privacy and licenses
 
-Requested by the maintainer on 2026-11-15. Planned work; not yet implemented.
-
-- [ ] Add prominent change notices directly to modified inherited source/configuration files, retaining existing copyright and attribution notices.
-- [ ] Include the complete Apache License 2.0 text with the distributed APK and make it accessible in the app's About/license information.
-- [ ] Review bundled dependency licenses and any applicable NOTICE requirements; include the required third-party notices.
-- [ ] Verify license and notice files in the final packaged APK before publishing the next release.
+- [x] Persistent control for automatic GitHub update checks, loaded before any automatic request.
+- [x] Manual check action, including previously skipped versions, with progress/result feedback.
+- [x] Explicit cloud-backup opt-out and Android 12+ extraction exclusions.
+- [x] Change notices on modified inherited source/configuration files, retaining original attribution.
+- [x] Full Apache 2.0 text and generated dependency licenses/notices available offline in About.
+- [x] Automated tests for preference loading and repeated automatic checks; APK content verification in CI.
+- [ ] Build/lint checks pass and packaged licenses are reviewed.
+- [ ] Production-signed APK tested by the maintainer as an update over 1.4.0.
+- [ ] Publish stable after the device test.

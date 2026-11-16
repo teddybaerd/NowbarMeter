@@ -1,0 +1,11 @@
+Nowbar Meter
+
+Original Android speed monitor: Pixel Meter / Mystery00 and contributors
+https://github.com/Pixel-Tailor-CN/PixelMeter
+Samsung adaptations and v1.3: realMoai
+Preserved source: joelsubash2000
+Continuation: teddybaerd, with assistance from ChatGPT/Codex
+https://github.com/teddybaerd/NowbarMeter
+
+Licensed under the Apache License, Version 2.0.
+Original copyright notices are retained in source and artifact notices.

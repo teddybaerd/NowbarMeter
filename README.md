@@ -30,7 +30,7 @@ This continuation preserves realMoai's NowbarMeter v1.3 via [joelsubash2000's fo
 
 ## Download and installation
 
-Download `NowbarMeter-v1.4.0-standard.apk` from [Releases](https://github.com/teddybaerd/NowbarMeter/releases). Grant notification permission and enable monitoring. Autostart after reboot is optional in settings. For reliable background operation, allow unrestricted battery use when prompted.
+Download `NowbarMeter-v1.4.1-standard.apk` from [Releases](https://github.com/teddybaerd/NowbarMeter/releases). Grant notification permission and enable monitoring. Autostart after reboot is optional in settings. For reliable background operation, allow unrestricted battery use when prompted.
 
 The original realMoai app can remain installed, but stop its monitoring service before using this app. The earlier debug test build uses a different signing key: uninstall that test build before installing a release, and record any settings first. Future releases use one persistent signing key so updates can be installed normally.
 
@@ -70,10 +70,18 @@ The public signing certificate is in `signing/release-certificate.pem`; both sig
 
 After testing the signed APK, manually run `Publish verified signed release` with the version, successful signing run ID, and exact source commit. This workflow has no access to the signing environment. It verifies the artifact, APK signature, package, version and checksums before publishing the same APK. Building or signing alone does not publish a release.
 
+## Privacy and updates
+
+Network speed is measured locally using Android traffic counters. Automatic update checks contact GitHub when the app opens and can be disabled in Settings → About. This setting is enabled by default to preserve existing behavior. “Check for updates now” makes a single explicit request even when automatic checks are off, including versions previously skipped. Disabling the switch takes effect for subsequent automatic checks; it does not retract an already started request. Opening GitHub, downloading an APK or launching the optional speed-test website is a separate user action.
+
+Android cloud backup of app data, settings and imported fonts is disabled. Direct device migration is separate and depends on the manufacturer's transfer tools. This update does not delete backups created by earlier app versions.
+
+The offline “Open-source licenses” page contains the Apache 2.0 license, the resolved dependency list and license texts, and notices extracted from packaged AAR/JAR artifacts. The license collector runs during the build only; the page needs no connection or additional runtime library.
+
 ## Credits and license
 
 Original Android speed monitor: [Pixel Meter / Mystery00 and contributors](https://github.com/Pixel-Tailor-CN/PixelMeter). Samsung adaptations and v1.3: realMoai. Preserved source: joelsubash2000. Continuation, independent package identity and German translation: teddybaerd.
 
 This continuation is maintained by teddybaerd with assistance from OpenAI's ChatGPT/Codex for development, troubleshooting, translations and documentation. Project decisions and device testing are handled by the maintainer.
 
-Licensed under [Apache License 2.0](LICENSE). Original notices remain in the source history. This continuation changes namespace and build variants, update endpoints, translations, documentation and release automation.
+Licensed under [Apache License 2.0](LICENSE). Original notices are retained, and modified inherited source/configuration files carry change notices. This continuation changes namespace and build variants, update endpoints, translations, documentation and release automation.

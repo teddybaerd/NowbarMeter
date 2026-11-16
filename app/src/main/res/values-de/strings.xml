@@ -175,4 +175,17 @@
     <string name="action_download_apk">APK herunterladen</string>
     <string name="action_update">Aktualisieren</string>
     <string name="action_skip_version">Version überspringen</string>
+    <string name="settings_auto_updates">Automatisch nach Updates suchen</string>
+    <string name="settings_auto_updates_desc">Beim Öffnen der App auf GitHub nach Updates suchen.</string>
+    <string name="settings_check_updates">Jetzt nach Updates suchen</string>
+    <string name="settings_check_updates_desc">Einmalig auf GitHub nach einer neuen Version suchen.</string>
+    <string name="update_checking">Prüfung läuft…</string>
+    <string name="update_current">Du bist auf dem neuesten Stand.</string>
+    <string name="update_found">Eine neuere Version ist verfügbar.</string>
+    <string name="update_failed">Updateprüfung fehlgeschlagen. Bitte später erneut versuchen.</string>
+    <string name="settings_licenses">Open-Source-Lizenzen</string>
+    <string name="settings_licenses_desc">Lizenzen und Hinweise zu verwendeten Komponenten</string>
+    <string name="licenses_app">Nowbar Meter basiert auf Pixel Meter / NowbarMeter. Weitergeführt von teddybaerd mit Unterstützung durch ChatGPT/Codex. Lizenziert unter der Apache License 2.0.</string>
+    <string name="licenses_components">Verwendete Komponenten</string>
+    <string name="licenses_notices">Hinweise Dritter</string>
 </resources>
