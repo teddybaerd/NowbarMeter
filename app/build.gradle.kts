@@ -142,6 +142,7 @@ dependencies {
 // Build-time metadata only: no AboutLibraries runtime or network code in the APK.
 aboutLibraries {
     collect {
+        configPath = file("license-config")
         fetchRemoteLicense = false
         fetchRemoteFunding = false
     }
@@ -154,14 +155,15 @@ val collectThirdPartyNotices by tasks.registering {
     inputs.files(artifacts)
     outputs.dir(noticeAssets)
     doLast {
-        val notices = sortedSetOf<String>()
+        val notices = sortedMapOf<String, MutableSet<String>>()
         fun collectZip(bytes: ByteArray, source: String, nested: Boolean = false) {
             ZipInputStream(bytes.inputStream()).use { zip ->
                 while (true) {
                     val entry = zip.nextEntry ?: break
                     val name = entry.name.substringAfterLast('/').uppercase()
                     if (!entry.isDirectory && (name.startsWith("LICENSE") || name.startsWith("NOTICE") || name in listOf("AL2.0", "LGPL2.1", "COPYING", "COPYRIGHT"))) {
-                        notices.add("$source / ${entry.name}\n\n" + zip.readBytes().toString(Charsets.UTF_8))
+                        val text = zip.readBytes().toString(Charsets.UTF_8).trim()
+                        notices.getOrPut(text) { sortedSetOf() }.add("$source / ${entry.name}")
                     } else if (!nested && entry.name == "classes.jar") {
                         collectZip(zip.readBytes(), "$source / classes.jar", true)
                     }
@@ -173,7 +175,7 @@ val collectThirdPartyNotices by tasks.registering {
         }
         val output = noticeAssets.get().file("THIRD_PARTY_NOTICES.txt").asFile
         output.parentFile.mkdirs()
-        output.writeText(notices.joinToString("\n\n----------------------------------------\n\n") + "\n")
+        output.writeText(notices.entries.joinToString("\n\n----------------------------------------\n\n") { (text, sources) -> sources.joinToString("\n") + "\n\n" + text } + "\n")
     }
 }
 android.sourceSets.getByName("main").assets.srcDir(noticeAssets)

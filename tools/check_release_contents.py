@@ -14,6 +14,8 @@ with zipfile.ZipFile(apk) as package:
     assert len(reports) == 1, reports
     report = json.loads(package.read(reports[0]))
     assert report["libraries"], "Empty dependency report"
+    assert "Copyright 2008 Google Inc." in report["licenses"]["BSD-3-Clause"]["content"]
+    assert all("<<var;" not in license.get("content", "") for license in report["licenses"].values()), "Unexpanded SPDX template"
     for library in report["libraries"]:
         assert library.get("licenses"), "Missing license: " + library["uniqueId"]
         for key in library["licenses"]:
