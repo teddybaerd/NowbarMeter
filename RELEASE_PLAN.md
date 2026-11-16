@@ -15,9 +15,18 @@ The published APK is byte-for-byte identical to the device-tested APK: SHA-256 d
 
 German translation requested and first continuation release published on 2026-11-15.
 
-## Next release: license notices
+## Next release: privacy controls and license notices
 
-Requested by the maintainer on 2026-11-15. Planned work; not yet implemented.
+License work requested on 2026-11-15; privacy controls added on 2026-11-16. Deliver these together in the next update. Planned work; not yet implemented.
+
+### Privacy controls
+
+- [ ] Add a persistent setting to disable automatic GitHub update checks. When disabled, opening the app and changing the skipped-version preference must not initiate update requests.
+- [ ] Provide an explicit manual update-check action that works on demand, including when automatic checks are disabled. Explain the GitHub connection in the settings.
+- [ ] Explicitly disable Android cloud backup for app settings and imported fonts. Configure and verify the manifest and Android 12+ data-extraction rules. Treat device-to-device transfer separately; do not claim that disabling cloud backup necessarily disables manufacturer migration tools.
+- [ ] Update German and English interface strings and privacy documentation; verify automatic-check behavior and backup configuration before release.
+
+### License notices
 
 - [ ] Add prominent change notices directly to modified inherited source/configuration files, retaining existing copyright and attribution notices.
 - [ ] Include the complete Apache License 2.0 text with the distributed APK and make it accessible in the app's About/license information.
