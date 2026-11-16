@@ -2,7 +2,8 @@ name: Standard verification
 on:
   push:
     branches: [own-package-test, master]
-    paths-ignore: ['**.md', 'docs/**']
+  pull_request:
+    branches: [master]
   workflow_dispatch:
 permissions:
   contents: read
